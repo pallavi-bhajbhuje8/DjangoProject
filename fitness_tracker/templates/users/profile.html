@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Profile Overview -->
+    <div class="col-lg-4">
+        <div class="profile-card">
+            <div class="profile-header">
+                {% if user.profile.profile_picture %}
+                    <img src="{{ user.profile.profile_picture.url }}" alt="Profile" class="profile-avatar">
+                {% else %}
+                    <div class="avatar-placeholder-lg">
+                        {{ user.first_name|default:user.username|first|upper }}
+                    </div>
+                {% endif %}
+                <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                <p class="mb-0 opacity-75">{{ user.email }}</p>
+            </div>
+            <div class="profile-body">
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <h6 class="mb-0 fw-800 text-accent">{{ user.profile.age|default:"--" }}</h6>
+                        <small class="text-muted">Age</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="mb-0 fw-800 text-accent">{{ user.profile.height|default:"--" }}</h6>
+                        <small class="text-muted">Height (cm)</small>
+                    </div>
+                    <div class="col-4">
+                        <h6 class="mb-0 fw-800 text-accent">{{ user.profile.weight|default:"--" }}</h6>
+                        <small class="text-muted">Weight (kg)</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">BMI</span>
+                    <span class="fw-bold">{{ user.profile.bmi|default:"N/A" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">BMI Category</span>
+                    <span class="fw-bold">{{ user.profile.bmi_category }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Gender</span>
+                    <span class="fw-bold">{{ user.profile.get_gender_display|default:"Not set" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Fitness Goal</span>
+                    <span class="fw-bold">{{ user.profile.get_fitness_goal_display }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Daily Step Goal</span>
+                    <span class="fw-bold">{{ user.profile.daily_step_goal|default:"10000" }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Daily Calorie Goal</span>
+                    <span class="fw-bold">{{ user.profile.daily_calorie_goal|default:"2000" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div class="col-lg-8">
+        <div class="form-card">
+            <h5 class="mb-4 fw-bold"><i class="bi bi-pencil-square me-2 text-accent"></i>Edit Profile</h5>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <h6 class="text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                    Account Information
+                </h6>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name</label>
+                        {{ user_form.first_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        {{ user_form.last_name }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Email</label>
+                    {{ user_form.email }}
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="text-muted mb-3" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                    Personal Details
+                </h6>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Age</label>
+                        {{ profile_form.age }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Gender</label>
+                        {{ profile_form.gender }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fitness Goal</label>
+                        {{ profile_form.fitness_goal }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Height (cm)</label>
+                        {{ profile_form.height }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Weight (kg)</label>
+                        {{ profile_form.weight }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Daily Step Goal</label>
+                        {{ profile_form.daily_step_goal }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Daily Calorie Goal</label>
+                        {{ profile_form.daily_calorie_goal }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Profile Picture</label>
+                    {{ profile_form.profile_picture }}
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-accent">
+                        <i class="bi bi-check-lg me-2"></i>Save Changes
+                    </button>
+                    <a href="{% url 'users:change_password' %}" class="btn btn-outline-accent">
+                        <i class="bi bi-shield-lock me-2"></i>Change Password
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

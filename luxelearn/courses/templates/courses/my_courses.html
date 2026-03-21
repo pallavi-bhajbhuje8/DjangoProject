@@ -1,0 +1,36 @@
+{% extends 'courses/base.html' %}
+{% load course_tags %}
+
+{% block title %}My Courses — LuxLearn{% endblock %}
+{% block page_title %}My Courses{% endblock %}
+{% block page_sub %}{{ enrollments|length }} course{{ enrollments|length|pluralize }} enrolled{% endblock %}
+
+{% block content %}
+
+{% if enrollments %}
+<div class="course-grid">
+    {% for e in enrollments %}
+    <div class="course-card">
+        <a href="{% url 'course_detail' e.course.slug %}" class="cc-img">
+            <img src="{{ e.course.image }}" alt="{{ e.course.title }}" loading="lazy">
+            {% if e.is_completed %}
+            <div class="cc-badges"><span class="badge-pill" style="background:var(--lx-success); color:white;">✓ Completed</span></div>
+            {% endif %}
+        </a>
+        <div class="cc-body">
+            <div class="cc-category">{{ e.course.category.name }}</div>
+            <a href="{% url 'course_detail' e.course.slug %}"><h3 class="cc-title">{{ e.course.title }}</h3></a>
+            <div style="margin:12px 0 14px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:5px;">
+                    <span class="text-muted">Progress</span>
+                    <span style="font-weight:700;">{{ e.progress_percent }}%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width:{{ e.progress_percent }}%;"></div>
+                </div>
+            </div>
+            <div class="cc-footer" style="border-top:none; padding-top:0;">
+                {% if e.last_accessed_lesson %}
+                <a href="{% url 'lesson_view' e.course.slug e.last_accessed_lesson.slug %}" class="btn btn-primary btn-sm btn-block">Continue →</a>
+                {% else %}
+                <a href="{% url 'course_detail' e.course.slug %}" class="btn btn-primary btn-sm btn-block">Start 

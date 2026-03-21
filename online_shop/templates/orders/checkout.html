@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header mb-4">
+        <h2><i class="fas fa-credit-card text-accent me-2"></i>Checkout</h2>
+    </div>
+
+    <div class="row">
+        <!-- CHECKOUT FORM -->
+        <div class="col-lg-7 mb-4">
+            <form method="POST" action="{% url 'orders:checkout' %}">
+                {% csrf_token %}
+                
+                <!-- SHIPPING INFO -->
+                <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fas fa-truck me-2 text-accent"></i>Shipping Information
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Address</label>
+                                {{ form.shipping_address }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">City</label>
+                                {{ form.shipping_city }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">State</label>
+                                {{ form.shipping_state }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Country</label>
+                                {{ form.shipping_country }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">ZIP Code</label>
+                                {{ form.shipping_zip }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAYMENT METHOD -->
+                <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="fas fa-wallet me-2 text-accent"></i>Payment Method
+                        </h5>
+                        {% for radio in form.payment_method %}
+                        <div class="form-check mb-3 p-3 border rounded-custom">
+                            {{ radio }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- NOTES -->
+                <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-sticky-note me-2 text-accent"></i>Order Notes
+                        </h5>
+                        {{ form.notes }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-lg w-100">
+                    <i class="fas fa-check-circle me-2"></i> Place Order — ${{ final_total|floatformat:2 }}
+                </button>
+            </form>
+        </div>
+
+        <!-- ORDER SUMMARY -->
+        <div class="col-lg-5">
+            <div class="cart-summary sticky-top" style="top: 100px;">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-receipt me-2 text-accent"></i>Order Summary
+                </h5>
+                
+                {% for item in items %}
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <img src="{{ item.product.product_image }}" alt="{{ item.product.product_name }}" 
+                         class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                    <div class="ms-3 flex-grow-1">
+                        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;">{{ item.product.product_name }}</h6>
+                        <small class="text-muted">Qty: {{ item.quantity }}</small>
+                    </div>
+                    <span class="fw-bold">${{ item.get_subtotal|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal</span>
+                    <span class="fw-bold">${{ subtotal|floatformat:2 }}</span>
+                </div>
+                {% if discount_amount > 0 %}
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Discount ({{ discount }}%)</span>
+                    <span class="fw-bold">-${{ discount_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Shipping</span>
+                    <span class="fw-bold text-success">Free</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold fs-5">Total</span>
+                    <span class="fw-bold fs-5 text-accent">${{ final_total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

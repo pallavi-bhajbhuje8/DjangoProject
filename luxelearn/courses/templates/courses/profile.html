@@ -1,0 +1,72 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Profile — LuxLearn{% endblock %}
+{% block page_title %}Profile{% endblock %}
+{% block page_sub %}Manage your account{% endblock %}
+
+{% block content %}
+
+<div class="profile-layout">
+    <div class="panel profile-card-main">
+        <div class="panel-body" style="padding: 28px;">
+            <div class="profile-avatar-lg">{{ user.first_name|default:user.username|make_list|first|upper }}</div>
+            <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 3px;">
+                {{ user.first_name|default:user.username }} {{ user.last_name }}
+            </h3>
+            <p class="text-muted" style="font-size: 0.82rem;">{{ user.email }}</p>
+            <p class="text-muted" style="font-size: 0.72rem; margin-top: 6px;">Member since {{ user.date_joined|date:"F Y" }}</p>
+            <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 6px;">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline btn-sm btn-block">📊 Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm btn-block">🚪 Sign Out</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head"><h3 class="panel-title">Edit Profile</h3></div>
+        <div class="panel-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" class="form-input" value="{{ user.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" class="form-input" value="{{ user.last_name }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" value="{{ user.email }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" name="phone" class="form-input" value="{{ profile.phone }}">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" class="form-input" value="{{ profile.city }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Country</label>
+                        <input type="text" name="country" class="form-input" value="{{ profile.country }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" class="form-input" rows="3">{{ profile.bio }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">LinkedIn</label>
+                    <input type="url" name="linkedin" class="form-input" value="{{ profile.linkedin }}" placeholder="https://linkedin.com/in/...">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

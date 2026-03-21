@@ -1,0 +1,229 @@
+{% extends 'courses/base.html' %}
+{% load course_tags %}
+
+{% block title %}{{ course.title }} — LuxLearn{% endblock %}
+{% block page_title %}{{ course.title|truncatewords:6 }}{% endblock %}
+{% block page_sub %}{{ course.category.name }}{% endblock %}
+
+{% block content %}
+
+<div class="detail-layout">
+    <div>
+        <div class="detail-hero-img">
+            <img src="{{ course.image }}" alt="{{ course.title }}">
+        </div>
+
+        <div class="detail-cat">{{ course.category.icon }} {{ course.category.name }} · {{ course.get_level_display }}</div>
+        <h1 class="detail-title">{{ course.title }}</h1>
+        <p class="detail-subtitle">{{ course.subtitle }}</p>
+
+        <div class="detail-meta">
+            {% if course.avg_rating > 0 %}
+            <span>
+                {% for i in course.avg_rating|star_range %}<span class="star">★</span>{% endfor %}
+                {{ course.avg_rating }} ({{ course.review_count }})
+            </span>
+            {% endif %}
+            <span>🎓 {{ course.enrollment_count }} enrolled</span>
+            <span>⏱ {{ course.total_duration_display }}</span>
+            <span>📖 {{ course.lesson_count }} lessons</span>
+            <span>🌐 {{ course.language }}</span>
+        </div>
+
+        <div class="detail-instructor">
+            <img src="{{ course.instructor.avatar_url }}" alt="{{ course.instructor.user.get_full_name }}">
+            <div>
+                <div class="detail-instructor-name">{{ course.instructor.user.get_full_name }}</div>
+                <div class="detail-instructor-title">{{ course.instructor.headline }}</div>
+            </div>
+        </div>
+
+        <div class="detail-desc">{{ course.description }}</div>
+
+        {% if course.learn_points %}
+        <div class="section-head"><h2 class="section-title">What You'll Learn</h2></div>
+        <div class="learn-grid mb-3">
+            {% for point in course.learn_points %}
+            <div class="learn-item">
+                <span class="check">✓</span>
+                <span>{{ point }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if course.requirement_points %}
+        <div class="section-head"><h2 class="section-title">Requirements</h2></div>
+        <div class="mb-3">
+            {% for req in course.requirement_points %}
+            <div class="learn-item">
+                <span class="check">→</span>
+                <span>{{ req }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Curriculum -->
+        <div class="section-head"><h2 class="section-title">Curriculum</h2></div>
+        <div class="module-list">
+            {% for module in modules %}
+            <div class="module-block">
+                <div class="module-header">
+                    <h4><span class="toggle-ico">▾</span> {{ module.title }}</h4>
+                    <span class="module-info">{{ module.lesson_count }} lessons · {{ module.total_duration }}m</span>
+                </div>
+                <div class="lesson-list">
+                    {% for lesson in module.lessons.all %}
+                    <div class="lesson-row">
+                        <span class="lesson-ico {% if lesson.id in lesson_progress_ids %}completed{% endif %}">
+                            {% if lesson.id in lesson_progress_ids %}✓{% elif lesson.lesson_type == 'video' %}▶{% elif lesson.lesson_type == 'quiz' %}❓{% elif lesson.lesson_type == 'text' %}📄{% else %}📝{% endif %}
+                        </span>
+                        {% if is_enrolled %}
+                        <a href="{% if lesson.lesson_type == 'quiz' %}{% url 'quiz' course_slug=course.slug lesson_slug=lesson.slug %}{% else %}{% url 'lesson' course_slug=course.slug lesson_slug=lesson.slug %}{% endif %}" class="lesson-name">{{ lesson.title }}</a>
+                        {% else %}
+                        <span class="lesson-name">{{ lesson.title }}</span>
+                        {% endif %}
+                        <span class="lesson-duration">{{ lesson.duration_display }}</span>
+                        {% if lesson.is_free %}<span class="lesson-free">Free</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Reviews -->
+        <div class="section-head mt-3"><h2 class="section-title">Reviews</h2></div>
+        <div class="panel">
+            <div class="panel-body">
+                {% if user.is_authenticated and is_enrolled %}
+                <form method="post" style="margin-bottom: 24px;">
+                    {% csrf_token %}
+                    <h4 style="font-size: 0.88rem; font-weight: 700; margin-bottom: 10px;">
+                        {% if user_review %}Update Review{% else %}Write a Review{% endif %}
+                    </h4>
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-select">
+                            {% for i in "12345" %}
+                            <span class="star-btn {% if user_review.rating >= forloop.counter %}active{% endif %}" data-value="{{ forloop.counter }}">
+                                {% if user_review.rating >= forloop.counter %}★{% else %}☆{% endif %}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" value="{{ user_review.rating|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-input" value="{{ user_review.title|default:'' }}" placeholder="Brief summary">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Review</label>
+                        <textarea name="comment" class="form-input" rows="3" placeholder="Share your experience...">{{ user_review.comment|default:'' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">{% if user_review %}Update{% else %}Submit{% endif %}</button>
+                </form>
+                {% endif %}
+
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-head">
+                        <div class="review-avatar">{{ review.user.first_name|default:review.user.username|make_list|first|upper }}</div>
+                        <div>
+                            <div class="review-author">{{ review.user.first_name|default:review.user.username }}</div>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <span style="font-size: 0.78rem; color: var(--gold);">{% for i in review.rating|star_range %}★{% endfor %}</span>
+                                <span class="review-date">{{ review.created_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if review.title %}<p style="font-weight: 700; font-size: 0.84rem; padding-left: 42px; margin-bottom: 3px;">{{ review.title }}</p>{% endif %}
+                    <p class="review-body">{{ review.comment }}</p>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center" style="padding: 16px;">No reviews yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Sidebar -->
+    <div class="enroll-card">
+        <div class="panel">
+            <div class="panel-body">
+                <div class="enroll-price">
+                    <span class="current">₹{{ course.price }}</span>
+                    {% if course.compare_price %}<span class="original">₹{{ course.compare_price }}</span>{% endif %}
+                    {% if course.discount_percent > 0 %}<span class="off">{{ course.discount_percent }}% OFF</span>{% endif %}
+                </div>
+
+                {% if is_enrolled %}
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 0.82rem; color: var(--success); font-weight: 700; margin-bottom: 8px;">✓ Enrolled</div>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>{{ enrollment.progress_percent }}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: {{ enrollment.progress_percent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% for module in modules %}
+                    {% for lesson in module.lessons.all %}
+                        {% if lesson.id not in lesson_progress_ids %}
+                        <a href="{% if lesson.lesson_type == 'quiz' %}{% url 'quiz' course_slug=course.slug lesson_slug=lesson.slug %}{% else %}{% url 'lesson' course_slug=course.slug lesson_slug=lesson.slug %}{% endif %}" class="btn btn-primary btn-block btn-lg">
+                            Continue Learning →
+                        </a>
+                            {% if forloop.first %}{% endif %}
+                        {% endif %}
+                        {% if forloop.first and forloop.parentloop.first %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {% else %}
+                <a href="{% url 'checkout' course.slug %}" class="btn btn-primary btn-block btn-lg">
+                    Enroll Now — ₹{{ course.price }}
+                </a>
+                {% endif %}
+
+                <ul class="enroll-features mt-2">
+                    <li><span class="ico">⏱</span> {{ course.total_duration_display }} of content</li>
+                    <li><span class="ico">📖</span> {{ course.lesson_count }} lessons</li>
+                    <li><span class="ico">📱</span> Access on all devices</li>
+                    <li><span class="ico">♾️</span> Lifetime access</li>
+                    {% if course.certificate_offered %}<li><span class="ico">🏆</span> Certificate of completion</li>{% endif %}
+                    <li><span class="ico">🌐</span> {{ course.language }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if related %}
+<div class="section-head mt-3">
+    <h2 class="section-title">You Might Also Like</h2>
+</div>
+<div class="courses-grid">
+    {% for r in related %}
+    <div class="course-card">
+        <a href="{% url 'course_detail' r.slug %}" class="card-img">
+            <img src="{{ r.image }}" alt="{{ r.title }}" loading="lazy">
+            <span class="card-level">{{ r.get_level_display }}</span>
+        </a>
+        <div class="card-body">
+            <div class="card-cat">{{ r.category.name }}</div>
+            <a href="{% url 'course_detail' r.slug %}"><h3 class="card-title">{{ r.title }}</h3></a>
+            <div class="card-footer">
+                <div class="card-price"><span class="current">₹{{ r.price }}</span></div>
+                <a href="{% url 'course_detail' r.slug %}" class="card-enroll">View</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

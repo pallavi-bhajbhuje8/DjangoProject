@@ -1,0 +1,197 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h3 class="fw-bold mb-4">Dashboard Overview</h3>
+
+<!-- STAT CARDS -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card orders">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-value">{{ total_orders }}</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card users">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">{{ total_users }}</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card products">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Products</div>
+                    <div class="stat-value">{{ total_products }}</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-box"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card revenue">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value">${{ total_revenue|floatformat:0 }}</div>
+                </div>
+                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card rounded-custom" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Revenue Overview</h5>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card rounded-custom" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Order Status</h5>
+                <canvas id="statusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOP PRODUCTS & RECENT ORDERS -->
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card rounded-custom" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Top Selling Products</h5>
+                {% for product in top_products %}
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <span class="fw-bold">#{{ forloop.counter }} {{ product.product_name|truncatechars:25 }}</span>
+                    <span class="badge bg-accent">{{ product.total_sold }} sold</span>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center">No sales data yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card rounded-custom" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Recent Orders</h5>
+                    <a href="{% url 'dashboard:orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'dashboard:order_detail' order.order_id %}" class="fw-bold text-decoration-none">
+                                        {{ order.order_id }}
+                                    </a>
+                                </td>
+                                <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                                <td class="fw-bold">${{ order.total_price|floatformat:2 }}</td>
+                                <td><span class="badge bg-{{ order.get_status_color }}">{{ order.get_status_display }}</span></td>
+                                <td>{{ order.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted">No orders yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Revenue Chart
+    const months = {{ months_json|safe }};
+    const revenues = {{ revenues_json|safe }};
+    
+    if (document.getElementById('revenueChart')) {
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: months.length ? months : ['No Data'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: revenues.length ? revenues : [0],
+                    borderColor: '#E67E22',
+                    backgroundColor: 'rgba(230,126,34,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#E67E22',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => '$' + v } }
+                }
+            }
+        });
+    }
+
+    // Status Chart
+    const statusLabels = {{ status_labels_json|safe }};
+    const statusData = {{ status_data_json|safe }};
+    const statusColors = ['#f39c12', '#3498db', '#2980b9', '#27ae60', '#e74c3c'];
+    
+    if (document.getElementById('statusChart')) {
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels.length ? statusLabels : ['No Data'],
+                datasets: [{
+                    data: statusData.length ? statusData : [1],
+                    backgroundColor: statusData.length ? statusColors.slice(0, statusData.length) : ['#ddd'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                cutout: '65%',
+            }
+        });
+    }
+</script>
+{% endblock %}

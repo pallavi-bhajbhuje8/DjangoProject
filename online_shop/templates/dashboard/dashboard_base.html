@@ -1,0 +1,151 @@
+{% load static %}
+{% load cart_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} | ShopHub Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- MESSAGES -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+            {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="dashboard-wrapper">
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <div class="sidebar-header">
+                <h4><i class="fas fa-store"></i> ShopHub</h4>
+                <small class="text-white-50">Admin Dashboard</small>
+            </div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{% url 'dashboard:home' %}" 
+                       class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard:products' %}"
+                       class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-box"></i> Products
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard:categories' %}"
+                       class="{% if 'categor' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-tags"></i> Categories
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard:orders' %}"
+                       class="{% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-shopping-bag"></i> Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard:users' %}"
+                       class="{% if 'users' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-users"></i> Users
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'dashboard:reports' %}"
+                       class="{% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a>
+                </li>
+                <hr class="sidebar-divider">
+                <li>
+                    <a href="{% url 'home' %}">
+                        <i class="fas fa-globe"></i> View Store
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin:index' %}">
+                        <i class="fas fa-cog"></i> Django Admin
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'users:logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="dashboard-main">
+            <!-- TOP BAR -->
+            <header class="dashboard-topbar">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary me-3 d-lg-none" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <form method="GET" action="{% url 'dashboard:products' %}">
+                        <input type="search" name="q" class="search-input" 
+                               placeholder="Search products..." value="{{ request.GET.q|default:'' }}">
+                    </form>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{% url 'dashboard:orders' %}?status=pending" class="btn btn-outline-secondary position-relative">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                    <div class="dropdown">
+                        <a class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" 
+                           href="#" data-bs-toggle="dropdown">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 35px; height: 35px; background: var(--primary); color: #fff; font-weight: 700;">
+                                {{ user.first_name|first|default:'A' }}
+                            </div>
+                            <span class="fw-bold">{{ user.first_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'users:profile' %}">
+                                <i class="fas fa-user me-2"></i> Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'users:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <div class="dashboard-content">
+                {% block dashboard_content %}{% endblock %}
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="dashboard-footer">
+                &copy; 2024 ShopHub Admin. All rights reserved. Built with Django &amp; Bootstrap 5.
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

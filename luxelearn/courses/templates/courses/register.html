@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — LuxLearn</title>
+    <link rel="stylesheet" href="{% static 'css/luxlearn.css' %}">
+</head>
+<body>
+{% if messages %}
+<div class="alerts">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }} <span class="alert-close">×</span></div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <h1>Lux<span>Learn</span></h1>
+            <p>Create your learning account</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-input" placeholder="Alex">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-input" placeholder="Chen">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username *</label>
+                <input type="text" name="username" class="form-input" required placeholder="Choose a username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input type="email" name="email" class="form-input" required placeholder="alex@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password *</label>
+                <input type="password" name="password" class="form-input" required placeholder="Min 8 characters">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                <input type="password" name="password2" class="form-input" required placeholder="Repeat password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
+        </form>
+        <div class="auth-divider">or</div>
+        <div class="auth-footer">Already have an account? <a href="{% url 'login' %}">Sign In</a></div>
+    </div>
+</div>
+<script src="{% static 'js/luxlearn.js' %}"></script>
+</body>
+</html>

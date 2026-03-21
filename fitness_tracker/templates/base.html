@@ -1,0 +1,154 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FitTrack{% endblock %} | Fitness Tracker</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Custom CSS -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <div class="app-wrapper">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div>
+                    <h4>FitTrack</h4>
+                    <span>Fitness Tracker</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Main</div>
+                <a href="{% url 'dashboard:home' %}" class="nav-link">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'workouts:list' %}" class="nav-link">
+                    <i class="bi bi-activity"></i>
+                    <span>Workouts</span>
+                </a>
+                <a href="{% url 'health_metrics:list' %}" class="nav-link">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Health Metrics</span>
+                </a>
+                <a href="{% url 'goals:list' %}" class="nav-link">
+                    <i class="bi bi-bullseye"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="{% url 'meals:list' %}" class="nav-link">
+                    <i class="bi bi-egg-fried"></i>
+                    <span>Meal Tracker</span>
+                </a>
+                <a href="{% url 'analytics:home' %}" class="nav-link">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Analytics</span>
+                </a>
+
+                <div class="nav-section-title">Account</div>
+                <a href="{% url 'users:profile' %}" class="nav-link">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{% url 'users:change_password' %}" class="nav-link">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Change Password</span>
+                </a>
+                <a href="{% url 'users:logout' %}" class="nav-link">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h5>{% block page_title %}Dashboard{% endblock %}</h5>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="topbar-search">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+
+                    <button class="topbar-notification" data-bs-toggle="tooltip" title="Notifications">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger rounded-pill">3</span>
+                    </button>
+
+                    <div class="dropdown">
+                        <div class="topbar-user" data-bs-toggle="dropdown">
+                            {% if user_profile and user_profile.profile_picture %}
+                                <img src="{{ user_profile.profile_picture.url }}" alt="Avatar">
+                            {% else %}
+                                <div class="user-avatar-placeholder">
+                                    {{ user.first_name|default:user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="user-info">
+                                <div class="user-name">{{ user.first_name|default:user.username }}</div>
+                                <div class="user-role">{{ user_profile.get_fitness_goal_display|default:"Member" }}</div>
+                            </div>
+                            <i class="bi bi-chevron-down ms-1" style="font-size:0.7rem; color: var(--text-muted);"></i>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'users:change_password' %}"><i class="bi bi-shield-lock me-2"></i>Change Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'users:logout' %}"><i class="bi bi-box-arrow-left me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                            <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' %}bi-exclamation-triangle{% elif message.tags == 'warning' %}bi-exclamation-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% else %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

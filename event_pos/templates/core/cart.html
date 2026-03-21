@@ -1,0 +1,131 @@
+{% extends 'core/base.html' %}
+{% load core_tags %}
+
+{% block title %}Cart — EventPOS{% endblock %}
+{% block page_title %}Your Cart{% endblock %}
+{% block page_subtitle %}{{ cart.item_count }} item{{ cart.item_count|pluralize }} in your cart{% endblock %}
+
+{% block content %}
+
+{% if cart.items.all %}
+<div class="cart-layout">
+    <!-- Cart Items -->
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">Order Items</h3>
+            <span class="text-muted" style="font-size: 0.8rem;">{{ cart.item_count }} item{{ cart.item_count|pluralize }}</span>
+        </div>
+        <div class="panel-body">
+            {% for item in cart.items.all %}
+            <div class="cart-item">
+                <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-image">
+                    <img src="{{ item.product.image }}" alt="{{ item.product.name }}">
+                </a>
+                <div class="cart-item-info">
+                    <a href="{% url 'product_detail' item.product.slug %}">
+                        <div class="cart-item-name">{{ item.product.name }}</div>
+                    </a>
+                    <div class="cart-item-category">{{ item.product.category.name }}</div>
+                    <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px;">
+                        <div class="quantity-control">
+                            <form action="{% url 'update_cart' item.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="decrease">
+                                <button type="submit" class="quantity-btn" aria-label="Decrease">−</button>
+                            </form>
+                            <span class="quantity-value">{{ item.quantity }}</span>
+                            <form action="{% url 'update_cart' item.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="increase">
+                                <button type="submit" class="quantity-btn" aria-label="Increase">+</button>
+                            </form>
+                        </div>
+                        <form action="{% url 'update_cart' item.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove">
+                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 5px 10px; font-size: 0.72rem;">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="cart-item-price">₹{{ item.total_price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+        <div class="panel">
+            <div class="panel-header">
+                <h3 class="panel-title">Order Summary</h3>
+            </div>
+            <div class="panel-body">
+                <div class="summary-row">
+                    <span class="label">Subtotal</span>
+                    <span class="value">₹{{ cart.subtotal }}</span>
+                </div>
+
+                {% if cart.coupon %}
+                <div class="summary-row discount">
+                    <span class="label">Discount ({{ cart.coupon.code }})</span>
+                    <span class="value">-₹{{ cart.discount_amount }}</span>
+                </div>
+                <div style="margin-top: 4px;">
+                    <form action="{% url 'remove_coupon' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-sm" style="font-size: 0.72rem; padding: 3px 8px;">Remove Coupon</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div class="summary-row">
+                    <span class="label">Shipping</span>
+                    <span class="value">{% if cart.subtotal >= 500 %}<span class="text-success">Free</span>{% else %}₹50{% endif %}</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span class="label">Total</span>
+                    <span class="value" style="color: var(--color-gold);">₹{% if cart.subtotal >= 500 %}{{ cart.total }}{% else %}{{ cart.total|add:50 }}{% endif %}</span>
+                </div>
+
+                {% if not cart.coupon %}
+                <form action="{% url 'apply_coupon' %}" method="post" class="coupon-form">
+                    {% csrf_token %}
+                    <input type="text" name="coupon_code" placeholder="Coupon code" required>
+                    <button type="submit" class="btn btn-outline btn-sm">Apply</button>
+                </form>
+                {% endif %}
+
+                <div style="margin-top: 20px;">
+                    <a href="{% url 'checkout' %}" class="btn btn-primary btn-block btn-lg">
+                        Proceed to Checkout →
+                    </a>
+                </div>
+
+                <p class="text-muted text-center" style="font-size: 0.72rem; margin-top: 12px;">
+                    Free shipping on orders above ₹500
+                </p>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-top: 16px;">
+            <div class="panel-body" style="padding: 16px;">
+                <p style="font-size: 0.78rem; color: var(--color-text-muted); text-align: center;">
+                    🔒 Secure checkout · 💳 Multiple payment options<br>
+                    Try: <strong>WELCOME20</strong> · <strong>FLAT200</strong> · <strong>EVENT10</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">🛒</div>
+    <h3 class="empty-state-title">Your cart is empty</h3>
+    <p class="empty-state-desc">Explore our menu and add some delicious items to your cart.</p>
+    <a href="{% url 'shop' %}" class="btn btn-primary btn-lg">Browse Menu →</a>
+</div>
+{% endif %}
+
+{% endblock %}

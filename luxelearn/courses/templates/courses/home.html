@@ -1,0 +1,148 @@
+{% extends 'courses/base.html' %}
+{% load course_tags %}
+
+{% block title %}LuxLearn — Premium Online Education{% endblock %}
+{% block page_title %}Home{% endblock %}
+{% block page_sub %}Invest in yourself{% endblock %}
+
+{% block content %}
+
+<div class="hero anim">
+    <div class="hero-content">
+        <div class="hero-eyebrow">Premium Learning Experience</div>
+        <h2>Master the Skills That<br><em>Define Excellence</em></h2>
+        <p>World-class courses taught by industry leaders. From executive leadership to machine learning — elevate your career with curated education designed for ambitious professionals.</p>
+        <div class="hero-actions">
+            <a href="{% url 'catalog' %}" class="btn btn-primary btn-lg">Explore Courses →</a>
+            <a href="{% url 'catalog' %}?category=leadership" class="btn btn-outline btn-lg">Leadership Programs</a>
+        </div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card anim d1">
+        <div class="stat-header">
+            <span class="stat-label">Total Courses</span>
+            <span class="stat-icon gold">📚</span>
+        </div>
+        <div class="stat-value">{{ total_courses }}</div>
+        <div class="stat-change">↑ Expert-led programs</div>
+    </div>
+    <div class="stat-card anim d2">
+        <div class="stat-header">
+            <span class="stat-label">Enrolled Learners</span>
+            <span class="stat-icon green">🎓</span>
+        </div>
+        <div class="stat-value">{{ total_students }}+</div>
+        <div class="stat-change">↑ Growing community</div>
+    </div>
+    <div class="stat-card anim d3">
+        <div class="stat-header">
+            <span class="stat-label">Categories</span>
+            <span class="stat-icon blue">📋</span>
+        </div>
+        <div class="stat-value">{{ categories|length }}</div>
+        <div class="stat-change">↑ Full spectrum</div>
+    </div>
+    <div class="stat-card anim d4">
+        <div class="stat-header">
+            <span class="stat-label">Satisfaction</span>
+            <span class="stat-icon warm">⭐</span>
+        </div>
+        <div class="stat-value">4.9</div>
+        <div class="stat-change">↑ From verified reviews</div>
+    </div>
+</div>
+
+<div class="cat-tabs">
+    <a href="{% url 'catalog' %}" class="cat-tab active"><span class="ico">✨</span> All Courses</a>
+    {% for cat in categories %}
+    <a href="{% url 'catalog' %}?category={{ cat.slug }}" class="cat-tab">
+        <span class="ico">{{ cat.icon }}</span> {{ cat.name }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if featured %}
+<div class="section-head">
+    <div>
+        <h2 class="section-title">Featured Programs</h2>
+        <p class="section-sub">Hand-selected by our editorial team</p>
+    </div>
+    <a href="{% url 'catalog' %}" class="btn btn-outline btn-sm">View All →</a>
+</div>
+
+<div class="courses-grid">
+    {% for course in featured %}
+    <div class="course-card">
+        <a href="{% url 'course_detail' course.slug %}" class="card-img">
+            <img src="{{ course.image }}" alt="{{ course.title }}" loading="lazy">
+            <div class="card-badges">
+                {% if course.is_bestseller %}<span class="badge badge-gold">Bestseller</span>{% endif %}
+                {% if course.discount_percent > 0 %}<span class="badge badge-sale">-{{ course.discount_percent }}%</span>{% endif %}
+            </div>
+            <span class="card-level">{{ course.get_level_display }}</span>
+        </a>
+        <div class="card-body">
+            <div class="card-cat">{{ course.category.name }}</div>
+            <a href="{% url 'course_detail' course.slug %}"><h3 class="card-title">{{ course.title }}</h3></a>
+            <div class="card-instructor">
+                <img src="{{ course.instructor.avatar_url }}" alt="{{ course.instructor.user.get_full_name }}">
+                <span>{{ course.instructor.user.get_full_name }}</span>
+            </div>
+            <div class="card-meta">
+                <span>⏱ {{ course.total_duration_display }}</span>
+                <span>📖 {{ course.lesson_count }} lessons</span>
+                <span>🎓 {{ course.enrollment_count }}</span>
+            </div>
+            <div class="card-footer">
+                <div class="card-price">
+                    <span class="current">₹{{ course.price }}</span>
+                    {% if course.compare_price %}<span class="original">₹{{ course.compare_price }}</span>{% endif %}
+                </div>
+                {% if course.avg_rating > 0 %}
+                <div class="card-rating">
+                    {% for i in course.avg_rating|star_range %}<span class="star">★</span>{% endfor %}
+                    {% for i in course.avg_rating|empty_star_range %}<span class="star empty">★</span>{% endfor %}
+                    <span class="rating-num">({{ course.review_count }})</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if latest %}
+<div class="section-head mt-3">
+    <div>
+        <h2 class="section-title">Latest Additions</h2>
+        <p class="section-sub">Freshly published by our instructors</p>
+    </div>
+</div>
+<div class="courses-grid">
+    {% for course in latest %}
+    <div class="course-card">
+        <a href="{% url 'course_detail' course.slug %}" class="card-img">
+            <img src="{{ course.image }}" alt="{{ course.title }}" loading="lazy">
+            <span class="card-level">{{ course.get_level_display }}</span>
+        </a>
+        <div class="card-body">
+            <div class="card-cat">{{ course.category.name }}</div>
+            <a href="{% url 'course_detail' course.slug %}"><h3 class="card-title">{{ course.title }}</h3></a>
+            <div class="card-meta">
+                <span>⏱ {{ course.total_duration_display }}</span>
+                <span>📖 {{ course.lesson_count }} lessons</span>
+            </div>
+            <div class="card-footer">
+                <div class="card-price"><span class="current">₹{{ course.price }}</span></div>
+                <a href="{% url 'course_detail' course.slug %}" class="card-enroll">View Course</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

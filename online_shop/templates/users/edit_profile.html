@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - ShopVista{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="breadcrumb-custom">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'users:profile' %}">Profile</a></li>
+            <li class="breadcrumb-item active">Edit Profile</li>
+        </ol>
+    </nav>
+
+    <div class="auth-form" style="max-width: 600px;">
+        <h2 class="text-center mb-4"><i class="bi bi-pencil-square me-2"></i>Edit Profile</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <h5 class="mb-3 text-muted">Account Information</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name</label>
+                    {{ user_form.first_name }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    {{ user_form.last_name }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ user_form.email }}
+            </div>
+
+            <hr>
+            <h5 class="mb-3 text-muted">Profile Details</h5>
+
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                {{ profile_form.phone }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                {{ profile_form.address }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">City</label>
+                    {{ profile_form.city }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">State</label>
+                    {{ profile_form.state }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Country</label>
+                    {{ profile_form.country }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">ZIP Code</label>
+                    {{ profile_form.zip_code }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Profile Picture</label>
+                {{ profile_form.profile_picture }}
+            </div>
+
+            <button type="submit" class="btn btn-accent-custom w-100">
+                <i class="bi bi-check-circle me-2"></i>Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

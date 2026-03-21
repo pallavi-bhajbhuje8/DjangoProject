@@ -1,0 +1,203 @@
+<!-- core/templates/core/landing.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <button class="hamburger" onclick="toggleMobileNav()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#doctors" class="nav-link">Doctors</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'dashboard' %}" class="nav-link active">Dashboard</a></li>
+            <li><a href="{% url 'logout' %}" class="nav-link">Logout</a></li>
+        {% else %}
+            <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+            <li><a href="{% url 'register' %}" class="nav-link active">Get Started</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content fade-in">
+        <h1>🩺 AI-Powered Healthcare<br>At Your Fingertips</h1>
+        <p>
+            Advanced symptom analysis, expert doctor consultations, and smart medical
+            records — all in one premium telemedicine platform.
+        </p>
+        <div class="hero-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'symptom_checker' %}" class="btn btn-white btn-lg">
+                    <i class="fas fa-robot"></i> Start AI Health Check
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-glass btn-lg">
+                    <i class="fas fa-columns"></i> Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-white btn-lg">
+                    <i class="fas fa-user-plus"></i> Create Free Account
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-glass btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<section style="background: var(--white); padding: 2rem; border-bottom: 1px solid var(--gray-300);">
+    <div class="grid grid-4" style="max-width: 1000px; margin: 0 auto;">
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">{{ stats.total_patients|default:"2,500" }}+</div>
+            <div style="color: var(--gray-600); font-size: 0.9rem;">Patients Served</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--secondary);">{{ stats.total_doctors|default:"150" }}+</div>
+            <div style="color: var(--gray-600); font-size: 0.9rem;">Expert Doctors</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--accent);">{{ stats.total_consultations|default:"10,000" }}+</div>
+            <div style="color: var(--gray-600); font-size: 0.9rem;">Consultations</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--danger);">{{ stats.ai_analyses|default:"5,000" }}+</div>
+            <div style="color: var(--gray-600); font-size: 0.9rem;">AI Analyses</div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" id="features">
+    <div class="section-header">
+        <h2>Why Choose MediCare AI?</h2>
+        <p>A complete healthcare platform designed for the modern world</p>
+    </div>
+
+    <div class="grid grid-3">
+        {% for feature in features %}
+        <div class="feature-card fade-in">
+            <img src="{{ feature.image }}" alt="{{ feature.title }}" class="feature-img" loading="lazy">
+            <div class="feature-body">
+                <div class="feature-icon">{{ feature.icon }}</div>
+                <h3 class="feature-title">{{ feature.title }}</h3>
+                <p class="feature-desc">{{ feature.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Doctors Section -->
+<section style="background: var(--white); padding: 5rem 2rem;" id="doctors">
+    <div class="section-header">
+        <h2>Meet Our Expert Doctors</h2>
+        <p>Board-certified physicians across multiple specialties</p>
+    </div>
+
+    <div class="grid grid-3" style="max-width: 1200px; margin: 0 auto;">
+        {% if doctors %}
+            {% for doc in doctors %}
+            <div class="doctor-card fade-in">
+                <img src="{{ doc.photo_url }}" alt="Dr. {{ doc.user_profile.user.get_full_name }}" class="doctor-avatar" loading="lazy">
+                <div class="doctor-name">Dr. {{ doc.user_profile.user.get_full_name }}</div>
+                <div class="doctor-specialty">{{ doc.get_specialty_display }}</div>
+                <div class="doctor-rating">
+                    ⭐ {{ doc.rating }} · {{ doc.years_experience }} yrs experience
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'register' %}" class="btn btn-outline btn-sm">Book Consultation</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Demo Doctors -->
+            <div class="doctor-card fade-in">
+                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop" alt="Doctor" class="doctor-avatar">
+                <div class="doctor-name">Dr. Sarah Mitchell</div>
+                <div class="doctor-specialty">Cardiology</div>
+                <div class="doctor-rating">⭐ 4.9 · 15 yrs experience</div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'register' %}" class="btn btn-outline btn-sm">Book Consultation</a>
+                </div>
+            </div>
+            <div class="doctor-card fade-in">
+                <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop" alt="Doctor" class="doctor-avatar">
+                <div class="doctor-name">Dr. Emily Chen</div>
+                <div class="doctor-specialty">Neurology</div>
+                <div class="doctor-rating">⭐ 4.8 · 12 yrs experience</div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'register' %}" class="btn btn-outline btn-sm">Book Consultation</a>
+                </div>
+            </div>
+            <div class="doctor-card fade-in">
+                <img src="https://images.unsplash.com/photo-1622253694242-abeb37a33e97?w=200&h=200&fit=crop" alt="Doctor" class="doctor-avatar">
+                <div class="doctor-name">Dr. James Wilson</div>
+                <div class="doctor-specialty">General Practice</div>
+                <div class="doctor-rating">⭐ 4.9 · 20 yrs experience</div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'register' %}" class="btn btn-outline btn-sm">Book Consultation</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="background: linear-gradient(135deg, #059669, #047857); padding: 4rem 2rem; text-align: center; color: white;">
+    <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">
+        Ready to Take Control of Your Health?
+    </h2>
+    <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Join thousands of patients and doctors who trust MediCare AI for smarter, faster healthcare.
+    </p>
+    <a href="{% url 'register' %}" class="btn btn-white btn-lg">
+        <i class="fas fa-rocket"></i> Get Started Free
+    </a>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-grid">
+        <div>
+            <div class="footer-title">🩺 MediCare AI</div>
+            <p style="font-size: 0.85rem; line-height: 1.6;">
+                AI-powered telemedicine platform for smarter healthcare delivery and patient care.
+            </p>
+        </div>
+        <div>
+            <div class="footer-title">Platform</div>
+            <a href="#" class="footer-link">AI Symptom Checker</a>
+            <a href="#" class="footer-link">Find a Doctor</a>
+            <a href="#" class="footer-link">Telemedicine</a>
+            <a href="#" class="footer-link">Health Records</a>
+        </div>
+        <div>
+            <div class="footer-title">Company</div>
+            <a href="#" class="footer-link">About Us</a>
+            <a href="#" class="footer-link">Careers</a>
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+        </div>
+        <div>
+            <div class="footer-title">Support</div>
+            <a href="#" class="footer-link">Help Center</a>
+            <a href="#" class="footer-link">Contact Us</a>
+            <a href="#" class="footer-link">Emergency: 911</a>
+            <a href="#" class="footer-link">Crisis Line: 988</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2024 MediCare AI. All rights reserved. Not a substitute for professional medical advice.</p>
+    </div>
+</footer>
+{% endblock %}

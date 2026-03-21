@@ -1,0 +1,88 @@
+<!-- core/templates/core/register.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block body %}
+<div class="auth-container">
+    <div class="auth-card fade-in" style="max-width: 540px;">
+        <div class="auth-header">
+            <a href="/" class="navbar-brand" style="justify-content: center; margin-bottom: 1rem;">
+                <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                MediCare AI
+            </a>
+            <h1>Create Your Account</h1>
+            <p>Join the future of healthcare</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    {{ form.first_name }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">I am a...</label>
+                    {{ form.role }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone (optional)</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    {{ form.password1 }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    {{ form.password2 }}
+                </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; color: var(--gray-600); font-size: 0.9rem;">
+            Already have an account?
+            <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 600;">Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

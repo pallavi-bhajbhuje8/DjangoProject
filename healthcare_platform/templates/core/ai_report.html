@@ -1,0 +1,293 @@
+<!-- core/templates/core/ai_report.html -->
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block title %}AI Health Report{% endblock %}
+
+{% block body %}
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="{% url 'dashboard' %}" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li><a href="{% url 'symptom_checker' %}" class="nav-link"><i class="fas fa-robot"></i> New Check</a></li>
+        <li><a href="{% url 'logout' %}" class="nav-link"><i class="fas fa-sign-out-alt"></i></a></li>
+    </ul>
+</nav>
+
+<div style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+    <div class="fade-in">
+
+        <!-- Report Header -->
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 class="page-title">🏥 AI Health Analysis Report</h1>
+            <p class="page-subtitle">
+                Generated {{ check.created_at|date:"F d, Y \a\t g:i A" }}
+            </p>
+            <div style="margin-top: 1rem;">
+                <div class="urgency-indicator urgency-{{ check.urgency_level }}"
+                     style="display: inline-flex; font-size: 1rem;">
+                    {% if check.urgency_level == 'low' %}🟢{% elif check.urgency_level == 'medium' %}🟡{% elif check.urgency_level == 'high' %}🔴{% else %}🆘{% endif %}
+                    Urgency: {{ check.get_urgency_level_display }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-box">
+            {{ disclaimer }}
+        </div>
+
+        <!-- Section 1: Symptom Analysis -->
+        <div class="report-section">
+            <div class="report-section-header">
+                <i class="fas fa-search" style="color: var(--primary);"></i>
+                <h3>1. Symptom Analysis</h3>
+            </div>
+            <div class="report-section-body">
+                {% if analysis.detected_symptoms %}
+                <div style="margin-bottom: 1rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">DETECTED SYMPTOMS</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                        {% for symptom in analysis.detected_symptoms %}
+                        <span class="badge badge-purple">{{ symptom }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if analysis.affected_body_systems %}
+                <div style="margin-bottom: 1rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">BODY SYSTEMS INVOLVED</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                        {% for system in analysis.affected_body_systems %}
+                        <span class="badge badge-blue">{{ system }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div style="margin-bottom: 1rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">POSSIBLE GENERAL CONDITIONS</strong>
+                    <p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 6px; font-style: italic;">
+                        These are possibilities only, NOT a diagnosis.
+                    </p>
+                    <ul class="report-list">
+                        {% for condition in analysis.possible_general_conditions %}
+                        <li><span class="bullet">•</span> {{ condition }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if analysis.urgency_description %}
+                <div class="urgency-indicator urgency-{{ check.urgency_level }}" style="margin-top: 1rem;">
+                    {{ analysis.urgency_description }}
+                </div>
+                {% endif %}
+
+                {% if analysis.uncertainty_note %}
+                <div class="alert alert-info" style="margin-top: 1rem;">
+                    <i class="fas fa-info-circle"></i>
+                    {{ analysis.uncertainty_note }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 2: Medical Summary -->
+        <div class="report-section">
+            <div class="report-section-header">
+                <i class="fas fa-file-medical" style="color: var(--secondary);"></i>
+                <h3>2. Structured Medical Summary</h3>
+            </div>
+            <div class="report-section-body">
+                <div class="grid grid-2" style="gap: 1rem;">
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">PRIMARY CONCERN</strong>
+                        <p style="font-size: 0.9rem; margin-top: 2px;">{{ medical_summary.primary_concern|default:"Not specified" }}</p>
+                    </div>
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">DURATION</strong>
+                        <p style="font-size: 0.9rem; margin-top: 2px;">{{ medical_summary.duration|default:"Not specified" }}</p>
+                    </div>
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">SEVERITY</strong>
+                        <p style="font-size: 0.9rem; margin-top: 2px;">{{ medical_summary.severity_level|default:"Not assessed" }}</p>
+                    </div>
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">MEDICAL HISTORY</strong>
+                        <p style="font-size: 0.9rem; margin-top: 2px;">{{ medical_summary.relevant_medical_history|default:"Not provided" }}</p>
+                    </div>
+                </div>
+
+                {% if medical_summary.risk_factors %}
+                <div style="margin-top: 1.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">RISK FACTORS</strong>
+                    <ul class="report-list" style="margin-top: 6px;">
+                        {% for factor in medical_summary.risk_factors %}
+                        <li><span class="bullet">⚠️</span> {{ factor }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 3: Follow-up Questions -->
+        <div class="report-section">
+            <div class="report-section-header">
+                <i class="fas fa-question-circle" style="color: var(--accent);"></i>
+                <h3>3. Questions Your Doctor May Ask</h3>
+            </div>
+            <div class="report-section-body">
+                <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1rem;">
+                    Prepare answers to these questions for your consultation:
+                </p>
+                <ul class="report-list">
+                    {% for question in follow_up_questions %}
+                    <li>
+                        <span class="bullet" style="color: var(--accent); font-weight: 700;">{{ forloop.counter }}.</span>
+                        {{ question }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 4: Patient Guidance -->
+        <div class="report-section">
+            <div class="report-section-header">
+                <i class="fas fa-hand-holding-heart" style="color: var(--secondary);"></i>
+                <h3>4. General Guidance & Self-Care</h3>
+            </div>
+            <div class="report-section-body">
+                {% if patient_guidance.general_advice %}
+                <div style="margin-bottom: 1.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">SAFE GENERAL ADVICE</strong>
+                    <ul class="report-list" style="margin-top: 6px;">
+                        {% for advice in patient_guidance.general_advice %}
+                        <li><span class="bullet">✅</span> {{ advice }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if patient_guidance.next_steps %}
+                <div style="margin-bottom: 1.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">RECOMMENDED NEXT STEPS</strong>
+                    <ul class="report-list" style="margin-top: 6px;">
+                        {% for step in patient_guidance.next_steps %}
+                        <li><span class="bullet">➡️</span> {{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if patient_guidance.when_to_seek_urgent_care %}
+                <div class="alert alert-warning">
+                    <div>
+                        <strong>⚠️ Seek Urgent Care If:</strong>
+                        <ul style="margin-top: 6px; padding-left: 1.2rem;">
+                            {% for item in patient_guidance.when_to_seek_urgent_care %}
+                            <li style="margin-bottom: 4px; font-size: 0.85rem;">{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section 5: Doctor Notes (Doctor Mode) -->
+        {% if doctor_notes %}
+        <div class="report-section" style="border: 2px solid var(--secondary);">
+            <div class="report-section-header" style="background: #ECFDF5;">
+                <i class="fas fa-user-md" style="color: var(--secondary);"></i>
+                <h3>5. Clinical Notes (Doctor View)</h3>
+                <span class="badge badge-green">Doctor Mode</span>
+            </div>
+            <div class="report-section-body">
+                <div class="grid grid-2" style="gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">CHIEF COMPLAINT</strong>
+                        <p style="font-size: 0.9rem; margin-top: 4px;">{{ doctor_notes.chief_complaint }}</p>
+                    </div>
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--gray-500);">URGENCY ASSESSMENT</strong>
+                        <p style="font-size: 0.9rem; margin-top: 4px;">{{ doctor_notes.urgency_assessment }}</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <strong style="font-size: 0.8rem; color: var(--gray-500);">OBSERVATIONS</strong>
+                    <p style="font-size: 0.9rem; margin-top: 4px;">{{ doctor_notes.observations }}</p>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">POSSIBLE CONSIDERATIONS</strong>
+                    <ul class="report-list" style="margin-top: 6px;">
+                        {% for consideration in doctor_notes.possible_considerations %}
+                        <li><span class="bullet">•</span> {{ consideration }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <strong style="font-size: 0.85rem; color: var(--gray-600);">SUGGESTED NEXT STEPS</strong>
+                    <ul class="report-list" style="margin-top: 6px;">
+                        {% for step in doctor_notes.suggested_next_steps %}
+                        <li><span class="bullet">→</span> {{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 1rem;">
+                    <i class="fas fa-info-circle"></i>
+                    {{ doctor_notes.note }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Section 7: Risk & Safety Flags -->
+        {% if risk_flags %}
+        <div class="report-section" style="border: 2px solid var(--danger);">
+            <div class="report-section-header" style="background: #FEF2F2;">
+                <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+                <h3>7. Risk & Safety Flags</h3>
+            </div>
+            <div class="report-section-body">
+                {% for flag in risk_flags %}
+                <div class="alert alert-danger" style="margin-bottom: 8px;">
+                    {{ flag }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;">
+            <a href="{% url 'symptom_checker' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Analysis
+            </a>
+            <a href="{% url 'book_appointment' %}" class="btn btn-success">
+                <i class="fas fa-calendar-plus"></i> Book Doctor Appointment
+            </a>
+            <button onclick="window.print()" class="btn btn-secondary">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+
+        <!-- Final Disclaimer -->
+        <div class="disclaimer-box" style="margin-top: 2rem;">
+            {{ disclaimer }}
+        </div>
+    </div>
+</div>
+{% endblock %}

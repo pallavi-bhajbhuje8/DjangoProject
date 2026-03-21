@@ -1,0 +1,9 @@
+from .models import Cart
+
+
+def cart_count(request):
+    count = 0
+    if request.user.is_authenticated:
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        count = cart.get_item_count()
+    return {'cart_count': count}

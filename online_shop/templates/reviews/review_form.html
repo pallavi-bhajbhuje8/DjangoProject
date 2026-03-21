@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Write Review - ShopVista{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="auth-form" style="max-width: 600px;">
+        <h2 class="text-center mb-4">Write a Review</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Rating</label>
+                {{ form.rating }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Your Review</label>
+                {{ form.review_text }}
+            </div>
+            <button type="submit" class="btn btn-accent-custom w-100">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

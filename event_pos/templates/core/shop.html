@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+{% load core_tags %}
+
+{% block title %}Menu & Shop — EventPOS{% endblock %}
+{% block page_title %}Menu & Shop{% endblock %}
+{% block page_subtitle %}
+{% if active_category %}{{ active_category.name }}{% elif query %}Results for "{{ query }}"{% else %}Browse our complete menu{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Category Tabs -->
+<div class="category-tabs">
+    <a href="{% url 'shop' %}" class="category-tab {% if not active_category %}active{% endif %}">
+        <span class="icon">✨</span> All
+    </a>
+    {% for cat in categories %}
+    <a href="{% url 'shop' %}?category={{ cat.slug }}" class="category-tab {% if active_category.slug == cat.slug %}active{% endif %}">
+        <span class="icon">{{ cat.icon }}</span>
+        {{ cat.name }}
+        <span class="count">({{ cat.product_count }})</span>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Filters Row -->
+<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <form action="{% url 'shop' %}" method="get" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            {% if active_category %}
+            <input type="hidden" name="category" value="{{ active_category.slug }}">
+            {% endif %}
+            {% if query %}
+            <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+            <input type="number" name="min_price" placeholder="Min ₹" value="{{ min_price }}" class="form-input" style="width: 100px; padding: 8px 12px; font-size: 0.8rem;">
+            <span class="text-muted">—</span>
+            <input type="number" name="max_price" placeholder="Max ₹" value="{{ max_price }}" class="form-input" style="width: 100px; padding: 8px 12px; font-size: 0.8rem;">
+            <select name="sort" class="form-input" style="width: auto; padding: 8px 36px 8px 12px; font-size: 0.8rem;" onchange="this.form.submit()">
+                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+                <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name A-Z</option>
+                <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+            </select>
+            <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+        </form>
+    </div>
+    <span class="text-muted" style="font-size: 0.8rem;">{{ products|length }} item{{ products|length|pluralize }}</span>
+</div>
+
+<!-- Products Grid -->
+{% if products %}
+<div class="products-grid">
+    {% for product in products %}
+    <div class="product-card">
+        <a href="{% url 'product_detail' product.slug %}" class="product-card-image">
+            <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+            <div class="product-card-badges">
+                {% if product.is_new %}
+                <span class="badge-tag new">New</span>
+                {% endif %}
+                {% if product.discount_percent > 0 %}
+                <span class="badge-tag sale">-{{ product.discount_percent }}%</span>
+                {% endif %}
+                {% if product.is_featured %}
+                <span class="badge-tag featured">★ Chef's Pick</span>
+                {% endif %}
+            </div>
+        </a>
+        <div class="product-card-actions">
+            {% if user.is_authenticated %}
+            <button class="product-action-btn ajax-wishlist-toggle"
+                    data-url="{% url 'toggle_wishlist' product.id %}"
+                    data-csrf="{{ csrf_token }}"
+                    aria-label="Toggle wishlist">♡</button>
+            {% endif %}
+        </div>
+        <div class="product-card-body">
+            <div class="product-card-category">{{ product.category.name }}</div>
+            <a href="{% url 'product_detail' product.slug %}">
+                <h3 class="product-card-name">{{ product.name }}</h3>
+            </a>
+            <p class="product-card-desc">{{ product.short_description|default:product.description|truncatewords:12 }}</p>
+            {% if product.calories or product.prep_time %}
+            <div class="product-card-meta">
+                {% if product.calories %}<span>🔥 {{ product.calories }}</span>{% endif %}
+                {% if product.prep_time %}<span>⏱ {{ product.prep_time }}</span>{% endif %}
+                {% if product.serves %}<span>👥 {{ product.serves }}</span>{% endif %}
+            </div>
+            {% endif %}
+            <div class="product-card-footer">
+                <div class="product-price">
+                    <span class="current">₹{{ product.price }}</span>
+                    {% if product.compare_price %}
+                    <span class="original">₹{{ product.compare_price }}</span>
+                    {% endif %}
+                </div>
+                <form action="{% url 'add_to_cart' product.id %}" method="post" class="ajax-add-to-cart">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="add-to-cart-btn">+ Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <h3 class="empty-state-title">No items found</h3>
+    <p class="empty-state-desc">Try adjusting your search or filters to find what you're looking for.</p>
+    <a href="{% url 'shop' %}" class="btn btn-primary">Browse All Menu</a>
+</div>
+{% endif %}
+
+{% endblock %}

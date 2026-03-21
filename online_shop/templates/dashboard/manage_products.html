@@ -1,0 +1,59 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Manage Products{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Manage Products</h4>
+    <a href="{% url 'dashboard:add_product' %}" class="btn btn-accent">
+        <i class="fas fa-plus me-1"></i> Add Product
+    </a>
+</div>
+
+<div class="data-card">
+    <div class="card-header-custom">
+        <h5>Products ({{ products|length }})</h5>
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-sm" style="width: 250px;"
+                   placeholder="Search products..." value="{{ query }}">
+            <button class="btn btn-sm btn-accent" type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <div class="product-info">
+                            <img src="{{ product.image_url }}" class="product-thumb" alt="">
+                            <div>
+                                <strong>{{ product.product_name|truncatewords:5 }}</strong>
+                                {% if product.is_featured %}
+                                <br><span class="badge bg-warning text-dark">Featured</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ product.category.name }}</td>
+                    <td>
+                        ${{ product.effective_price|floatformat:2 }}
+                        {% if product.discount_price %}
+                        <br><small class="text-muted text-decoration-line-through">${{ product.price|floatformat:2 }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.stock_quantity <= 5 %}
+                        <span class="text-danger fw-bold">{{ 

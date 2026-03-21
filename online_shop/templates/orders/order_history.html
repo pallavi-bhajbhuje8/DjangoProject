@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header mb-4">
+        <h2><i class="fas fa-receipt text-accent me-2"></i>My Orders</h2>
+    </div>
+
+    {% if orders %}
+    <div class="data-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>{{ order.order_id }}</strong></td>
+                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    <td>{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+                    <td class="fw-bold text-accent">${{ order.total_price|floatformat:2 }}</td>
+                    <td>
+                        <span class="badge bg-{{ order.get_status_color }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'orders:order_detail' order.order_id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'orders:download_receipt' order.order_id %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="no-results">
+        <i class="fas fa-receipt"></i>
+        <h4>No orders yet</h4>
+        <p>Start shopping to see your order history here.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-accent mt-3">
+            <i class="fas fa-shopping-bag me-1"></i> Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

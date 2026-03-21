@@ -1,0 +1,156 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Checkout — EventPOS{% endblock %}
+{% block page_title %}Checkout{% endblock %}
+{% block page_subtitle %}Complete your order{% endblock %}
+
+{% block content %}
+
+<form method="post">
+{% csrf_token %}
+<div class="checkout-layout">
+    <!-- Checkout Form -->
+    <div>
+        <!-- Contact -->
+        <div class="checkout-section">
+            <div class="checkout-section-title">
+                <span class="step">1</span> Contact Information
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="full_name">Full Name *</label>
+                    <input type="text" name="full_name" id="full_name" class="form-input" required
+                           value="{{ profile.user.get_full_name|default:'' }}" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email *</label>
+                    <input type="email" name="email" id="email" class="form-input" required
+                           value="{{ user.email|default:'' }}" placeholder="john@example.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone *</label>
+                <input type="tel" name="phone" id="phone" class="form-input" required
+                       value="{{ profile.phone|default:'' }}" placeholder="+91 98765 43210">
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="checkout-section">
+            <div class="checkout-section-title">
+                <span class="step">2</span> Delivery Address
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="address">Address *</label>
+                <textarea name="address" id="address" class="form-input" rows="2" required
+                          placeholder="Street address, apartment, suite, etc.">{{ profile.address|default:'' }}</textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="city">City *</label>
+                    <input type="text" name="city" id="city" class="form-input" required
+                           value="{{ profile.city|default:'' }}" placeholder="Mumbai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="state">State *</label>
+                    <input type="text" name="state" id="state" class="form-input" required
+                           value="{{ profile.state|default:'' }}" placeholder="Maharashtra">
+                </div>
+            </div>
+            <div class="form-group" style="max-width: 200px;">
+                <label class="form-label" for="zipcode">PIN Code *</label>
+                <input type="text" name="zipcode" id="zipcode" class="form-input" required
+                       value="{{ profile.zipcode|default:'' }}" placeholder="400001">
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="checkout-section">
+            <div class="checkout-section-title">
+                <span class="step">3</span> Payment Method
+            </div>
+            <div class="payment-options">
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay_cod" value="cod" checked>
+                    <label for="pay_cod"><span class="icon">💵</span> Cash on Delivery</label>
+                </div>
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay_card" value="card">
+                    <label for="pay_card"><span class="icon">💳</span> Card Payment</label>
+                </div>
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay_upi" value="upi">
+                    <label for="pay_upi"><span class="icon">📱</span> UPI</label>
+                </div>
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay_wallet" value="wallet">
+                    <label for="pay_wallet"><span class="icon">👛</span> Wallet</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="checkout-section">
+            <div class="form-group">
+                <label class="form-label" for="notes">Order Notes (optional)</label>
+                <textarea name="notes" id="notes" class="form-input" rows="2"
+                          placeholder="Special instructions for delivery or preparation..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+        <div class="panel">
+            <div class="panel-header">
+                <h3 class="panel-title">Order Summary</h3>
+            </div>
+            <div class="panel-body">
+                {% for item in cart.items.all %}
+                <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--color-border-subtle);">
+                    <div style="width: 50px; height: 50px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0;">
+                        <img src="{{ item.product.image }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.825rem; font-weight: 600;">{{ item.product.name }}</div>
+                        <div style="font-size: 0.72rem; color: var(--color-text-muted);">Qty: {{ item.quantity }}</div>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.875rem;">₹{{ item.total_price }}</div>
+                </div>
+                {% endfor %}
+
+                <div style="margin-top: 16px;">
+                    <div class="summary-row">
+                        <span class="label">Subtotal</span>
+                        <span class="value">₹{{ cart.subtotal }}</span>
+                    </div>
+                    {% if cart.discount_amount > 0 %}
+                    <div class="summary-row discount">
+                        <span class="label">Discount</span>
+                        <span class="value">-₹{{ cart.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-row">
+                        <span class="label">Shipping</span>
+                        <span class="value">{% if shipping_cost == 0 %}<span class="text-success">Free</span>{% else %}₹{{ shipping_cost }}{% endif %}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span class="label">Total</span>
+                        <span class="value" style="color: var(--color-gold); font-size: 1.2rem;">₹{{ order_total }}</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 20px;">
+                    Place Order — ₹{{ order_total }}
+                </button>
+
+                <p class="text-muted text-center" style="font-size: 0.72rem; margin-top: 12px;">
+                    🔒 Your information is secure and encrypted
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{% endblock %}

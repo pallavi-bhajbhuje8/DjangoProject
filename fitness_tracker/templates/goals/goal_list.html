@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Goals{% endblock %}
+{% block page_title %}Goals{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-bullseye me-2 text-accent"></i>My Goals</h2>
+    <a href="{% url 'goals:create' %}" class="btn btn-accent">
+        <i class="bi bi-plus-lg me-2"></i>New Goal
+    </a>
+</div>
+
+<!-- Status Filter -->
+<div class="filter-bar">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="?status=active" class="btn btn-sm {% if status_filter == 'active' %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-lightning me-1"></i>Active
+        </a>
+        <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-check-circle me-1"></i>Completed
+        </a>
+        <a href="?status=paused" class="btn btn-sm {% if status_filter == 'paused' %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-pause-circle me-1"></i>Paused
+        </a>
+        <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-grid me-1"></i>All
+        </a>
+    </div>
+</div>
+
+<!-- Goals Grid -->
+{% if goals %}
+<div class="row g-4">
+    {% for goal in goals %}
+    <div class="col-lg-6">
+        <div class="goal-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="goal-type-icon bg-accent-soft text-accent">
+                        <i class="bi {% if goal.goal_type == 'daily_steps' %}bi-footprints{% elif goal.goal_type == 'weekly_workouts' %}bi-calendar-check{% elif goal.goal_type == 'weight_loss' or goal.goal_type == 'weight_gain' %}bi-speedometer{% elif goal.goal_type == 'calorie_burn' %}bi-fire{% elif goal.goal_type == 'running_distance' %}bi-geo{% elif goal.goal_type == 'sleep_hours' %}bi-moon-stars{% elif goal.goal_type == 'water_intake' %}bi-droplet{% else %}bi-star{% endif %}"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">{{ goal.title }}</h6>
+                        <small class="text-muted">{{ goal.get_goal_type_display }}</small>
+                    </div>
+                </div>
+                <span class="status-badge status-{{ goal.status }}">{{ goal.get_status_display }}</span>
+            </div>
+
+            {% if goal.description %}
+            <p class="text-muted small mb-3">{{ goal.description|truncatewords:20 }}</p>
+            {% endif %}
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <small class="fw-bold">Progress</small>
+                    <small class="fw-800 text-accent">{{ goal.progress_percentage }}%</small>
+                </div>
+                <div class="progress-custom progress-lg">
+                    <div class="progress-bar bg-{{ goal.progress_color }}" style="width: {{ goal.progress_percentage }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                    <small class="text-muted">{{ goal.current_value }} / {{ goal.target_value }} {{ goal.unit }}</small>
+                    <small class="text-muted">
+                        {% if goal.is_overdue %}
+                            <span class="text-danger fw-bold">Overdue</span>
+                        {% else %}
+                            {{ goal.days_remaining }} days left
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <small class="text-muted">
+                    {{ goal.start_date|date:"M d" }} - {{ goal.end_date|date:"M d, Y" }}
+                </small>
+                <div class="btn-group btn-group-sm">
+                    <a href="{% url 'goals:edit' goal.pk %}" class="btn btn-outline-accent">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{% url 'goals:delete' goal.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger" data-confirm-delete>
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="dashboard-card">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-bullseye d-block"></i>
+            <h5>No goals found</h5>
+            <p>Set fitness goals to stay motivated and track your progress</p>
+            <a href="{% url 'goals:create' %}" class="btn btn-accent">Create Your First Goal</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

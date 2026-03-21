@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-graph-up me-2 text-accent"></i>Analytics & Insights</h2>
+</div>
+
+<!-- Summary Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-calendar-week me-2 text-accent"></i>This Week</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="fw-800 text-accent">{{ weekly_workout_count }}</h4>
+                        <small class="text-muted">Workouts</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--info);">{{ weekly_duration }}</h4>
+                        <small class="text-muted">Minutes</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--danger);">{{ weekly_calories }}</h4>
+                        <small class="text-muted">Calories</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-calendar-month me-2" style="color: var(--info);"></i>This Month</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="fw-800 text-accent">{{ monthly_workout_count }}</h4>
+                        <small class="text-muted">Workouts</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--info);">{{ monthly_duration }}</h4>
+                        <small class="text-muted">Minutes</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--danger);">{{ monthly_calories }}</h4>
+                        <small class="text-muted">Calories</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-trophy me-2" style="color: var(--warning);"></i>Goals Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="fw-800 text-accent">{{ active_goals }}</h4>
+                        <small class="text-muted">Active</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--info);">{{ completed_goals }}</h4>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="fw-800" style="color: var(--warning);">{{ total_goals }}</h4>
+                        <small class="text-muted">Total</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-fire me-2 text-danger"></i>Daily Calories Burned (Last 30 Days)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="caloriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-pie-chart me-2 text-accent"></i>Workout Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="workoutTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-graph-up me-2 text-info"></i>Weight Progress</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="weightProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h6><i class="bi bi-bar-chart me-2 text-accent"></i>Weekly Workout Duration</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="weeklyDurationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workout Breakdown Table -->
+{% if workout_by_type %}
+<div class="dashboard-card">
+    <div class="card-header-custom">
+        <h6><i class="bi bi-list-ul me-2 text-accent"></i>Workout Breakdown (Last 30 Days)</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Workout Type</th>
+                        <th>Sessions</th>
+                        <th>Total Duration</th>
+                        <th>Total Calories</th>
+                        <th>Avg Duration/Session</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for wt in workout_by_type %}
+                    <tr>
+                        <td><strong>{{ wt.workout_type|title }}</strong></td>
+                        <td>{{ wt.count }}</td>
+                        <td>{{ wt.total_duration }} min</td>
+                        <td>{{ wt.total_calories }} kcal</td>
+                        <td>{% widthratio wt.total_duration wt.count 1 %} min</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Nutrition Stats -->
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Today's Meal Calories</div>
+                    <div class="stat-value">{{ daily_meal_calories }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon bg-info">
+                    <i class="bi bi-calculator"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Avg Daily Calories (7 days)</div>
+                    <div class="stat-value">{{ avg_daily_calories }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Daily Calories Burned Chart
+    const dailyLabels = {{ daily_labels|safe }};
+    const dailyCaloriesData = {{ daily_calories_data|safe }};
+    createBarChart('caloriesChart', dailyLabels, dailyCaloriesData, 'Calories Burned', '#e74c3c');
+
+    // Workout Type Distribution
+    const typeLabels = {{ workout_type_labels|safe }};
+    const typeCounts = {{ workout_type_counts|safe }};
+    const typeColors = {{ workout_type_colors|safe }};
+    if (typeLabels.length > 0) {
+        createDoughnutChart('workoutTypeChart', typeLabels, typeCounts, typeColors);
+    }
+
+    // Weight Progress
+    const weightDates = {{ weight_dates|safe }};
+    const weightValues = {{ weight_values|safe }};
+    if (weightDates.length > 0) {
+        createLineChart('weightProgressChart', weightDates, weightValues, 'Weight (kg)', '#3498db');
+    }
+
+    // Weekly Duration
+    const weeklyLabels = {{ weekly_labels|safe }};
+    const weeklyDuration = {{ weekly_duration_data|safe }};
+    createBarChart('weeklyDurationChart', weeklyLabels, weeklyDuration, 'Duration (min)', '#27AE60');
+});
+</script>
+{% endblock %}

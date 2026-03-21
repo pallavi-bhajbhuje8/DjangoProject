@@ -1,0 +1,225 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - ShopVista Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-header">
+    <h2><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+    <span class="text-muted">Welcome back, {{ user.first_name|default:user.username }}!</span>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #3498DB;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="stat-label">Total Orders</p>
+                    <h3 class="stat-value">{{ total_orders }}</h3>
+                    <small class="text-muted">{{ pending_orders }} pending</small>
+                </div>
+                <div class="stat-icon bg-orders">
+                    <i class="bi bi-receipt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #27AE60;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="stat-label">Total Users</p>
+                    <h3 class="stat-value">{{ total_users }}</h3>
+                    <small class="text-muted">Registered customers</small>
+                </div>
+                <div class="stat-icon bg-users">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #E67E22;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="stat-label">Total Products</p>
+                    <h3 class="stat-value">{{ total_products }}</h3>
+                    <small class="text-muted">Active listings</small>
+                </div>
+                <div class="stat-icon bg-products">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card" style="border-left-color: #9B59B6;">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="stat-label">Total Revenue</p>
+                    <h3 class="stat-value">${{ total_revenue|floatformat:0|intcomma }}</h3>
+                    <small class="text-muted">All time</small>
+                </div>
+                <div class="stat-icon bg-revenue">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <h5 class="mb-3"><i class="bi bi-graph-up me-2"></i>Revenue Overview</h5>
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <h5 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Order Status</h5>
+            <canvas id="statusChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Products & Recent Orders -->
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="bg-white rounded shadow-sm p-3">
+            <h5 class="mb-3"><i class="bi bi-trophy me-2"></i>Top Selling Products</h5>
+            {% for tp in top_products %}
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                <span class="fw-bold">{{ forloop.counter }}. {{ tp.product_name|truncatechars:25 }}</span>
+                <span class="badge bg-success">{{ tp.total_sold }} sold</span>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center">No sales data yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="dashboard-table">
+            <div class="p-3 pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Orders</h5>
+                    <a href="{% url 'dashboard:orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'dashboard:order_detail' order_id=order.order_id %}">
+                                    {{ order.order_id }}
+                                </a>
+                            </td>
+                            <td>{{ order.full_name }}</td>
+                            <td><strong>${{ order.final_amount|floatformat:2 }}</strong></td>
+                            <td>
+                                <span class="badge bg-{{ order.get_status_color }} status-badge">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No orders yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const months = {{ months_json|safe }};
+    const revenues = {{ revenues_json|safe }};
+
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: months.length > 0 ? months : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Revenue ($)',
+                data: revenues.length > 0 ? revenues : [0, 0, 0, 0, 0, 0],
+                borderColor: '#E67E22',
+                backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#E67E22',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusLabels = {{ status_labels_json|safe }};
+    const statusCounts = {{ status_counts_json|safe }};
+
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusLabels.length > 0 ? statusLabels : ['No Data'],
+            datasets: [{
+                data: statusCounts.length > 0 ? statusCounts : [1],
+                backgroundColor: [
+                    '#F39C12', '#3498DB', '#2980B9', '#27AE60', '#E74C3C',
+                ],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 15 }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

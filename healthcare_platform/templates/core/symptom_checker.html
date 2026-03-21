@@ -1,0 +1,156 @@
+<!-- core/templates/core/symptom_checker.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}AI Symptom Checker{% endblock %}
+
+{% block body %}
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="{% url 'dashboard' %}" class="nav-link"><i class="fas fa-arrow-left"></i> Dashboard</a></li>
+        <li><a href="{% url 'logout' %}" class="nav-link"><i class="fas fa-sign-out-alt"></i></a></li>
+    </ul>
+</nav>
+
+<div class="main-layout">
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">Navigation</div>
+            <a href="{% url 'dashboard' %}" class="sidebar-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="{% url 'symptom_checker' %}" class="sidebar-link active">
+                <i class="fas fa-robot"></i> AI Symptom Check
+            </a>
+        </div>
+
+        {% if past_checks %}
+        <div class="sidebar-section">
+            <div class="sidebar-title">Recent Checks</div>
+            {% for check in past_checks %}
+            <a href="{% url 'ai_report' check.id %}" class="sidebar-link">
+                <i class="fas fa-file-medical-alt"></i>
+                <span style="font-size: 0.8rem;">{{ check.created_at|date:"M d, g:i A" }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </aside>
+
+    <main class="content fade-in">
+        <div class="page-header">
+            <h1 class="page-title">🤖 AI Health Symptom Checker</h1>
+            <p class="page-subtitle">Describe your symptoms and our AI will provide a structured health analysis</p>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-box">
+            <strong>⚕️ Important Notice</strong>
+            This AI health assistant provides <strong>informational analysis only</strong>.
+            It does not diagnose conditions or prescribe treatments.
+            Always consult a qualified healthcare professional for medical advice.
+            If you're experiencing a medical emergency, call 911 immediately.
+        </div>
+
+        <!-- Symptom Form -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-edit"></i> Describe Your Symptoms</span>
+            </div>
+            <div class="panel-body">
+                <form method="POST" id="symptomForm">
+                    {% csrf_token %}
+                    {{ form.user_type }}
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            {{ form.symptoms.label }}
+                            <span style="color: var(--danger);">*</span>
+                        </label>
+                        {{ form.symptoms }}
+                        <small style="color: var(--gray-500); font-size: 0.8rem;">
+                            Be as detailed as possible — include location, duration, and severity.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.medical_history.label }}</label>
+                        {{ form.medical_history }}
+                        <small style="color: var(--gray-500); font-size: 0.8rem;">
+                            Include allergies, chronic conditions, current medications, and past surgeries.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            {{ form.current_concern.label }}
+                            <span style="color: var(--danger);">*</span>
+                        </label>
+                        {{ form.current_concern }}
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                            <i class="fas fa-search-plus"></i> Analyze Symptoms
+                        </button>
+                        <button type="reset" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Common Symptoms Quick Select -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-tags"></i> Common Symptoms (Quick Select)</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                {% for symptom in "headache,chest pain,fever,cough,fatigue,abdominal pain,dizziness,skin rash,back pain,anxiety,shortness of breath,nausea"|make_list %}
+                {% endfor %}
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="headache" type="button">🤕 Headache</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="chest pain" type="button">💔 Chest Pain</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="fever" type="button">🤒 Fever</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="cough" type="button">😷 Cough</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="fatigue" type="button">😴 Fatigue</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="abdominal pain" type="button">🤢 Abdominal Pain</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="dizziness" type="button">💫 Dizziness</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="skin rash" type="button">🔴 Skin Rash</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="back pain" type="button">🦴 Back Pain</button>
+                <button class="btn btn-sm btn-secondary symptom-tag" data-symptom="anxiety" type="button">😰 Anxiety</button>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Quick symptom tag insertion
+    document.querySelectorAll('.symptom-tag').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const textarea = document.querySelector('textarea[name="symptoms"]');
+            const symptom = this.dataset.symptom;
+            if (textarea.value) {
+                textarea.value += ', ' + symptom;
+            } else {
+                textarea.value = symptom;
+            }
+            this.style.background = 'var(--primary)';
+            this.style.color = 'white';
+            textarea.focus();
+        });
+    });
+
+    // Form submission loading state
+    document.getElementById('symptomForm').addEventListener('submit', function() {
+        const btn = document.getElementById('analyzeBtn');
+        btn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div> Analyzing...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

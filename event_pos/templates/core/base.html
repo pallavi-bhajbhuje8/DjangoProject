@@ -1,0 +1,158 @@
+{% load static %}
+{% load core_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventPOS — Modern Event Catering & Management System">
+    <title>{% block title %}EventPOS{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            <span>
+                {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            {{ message }}
+            <span class="alert-close">×</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="sidebar-brand">
+                <a href="{% url 'home' %}">
+                    <h1>EventPOS</h1>
+                    <span>Catering & Events</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Menu</div>
+                <a href="{% url 'home' %}" class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <span class="icon">🏠</span> Home
+                </a>
+                <a href="{% url 'shop' %}" class="sidebar-link {% if request.resolver_match.url_name == 'shop' %}active{% endif %}">
+                    <span class="icon">🍽️</span> Menu & Shop
+                </a>
+                <a href="{% url 'cart' %}" class="sidebar-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                    <span class="icon">🛒</span> Cart
+                    {% if cart_item_count > 0 %}
+                    <span class="badge cart-count-badge">{{ cart_item_count }}</span>
+                    {% endif %}
+                </a>
+
+                {% if user.is_authenticated %}
+                <div class="sidebar-section-label">Account</div>
+                <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="{% url 'order_history' %}" class="sidebar-link {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
+                    <span class="icon">📦</span> Orders
+                </a>
+                <a href="{% url 'profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <span class="icon">👤</span> Profile
+                </a>
+                {% endif %}
+
+                <div class="sidebar-section-label">Categories</div>
+                <a href="{% url 'shop' %}?category=appetizers" class="sidebar-link">
+                    <span class="icon">🍤</span> Appetizers
+                </a>
+                <a href="{% url 'shop' %}?category=main-course" class="sidebar-link">
+                    <span class="icon">🥩</span> Main Course
+                </a>
+                <a href="{% url 'shop' %}?category=desserts" class="sidebar-link">
+                    <span class="icon">🍰</span> Desserts
+                </a>
+                <a href="{% url 'shop' %}?category=beverages" class="sidebar-link">
+                    <span class="icon">🍹</span> Beverages
+                </a>
+                <a href="{% url 'shop' %}?category=salads" class="sidebar-link">
+                    <span class="icon">🥗</span> Salads
+                </a>
+                <a href="{% url 'shop' %}?category=seafood" class="sidebar-link">
+                    <span class="icon">🦞</span> Seafood
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="sidebar-user">
+                    <div class="sidebar-user-avatar">
+                        {{ user.first_name|default:user.username|make_list|first|upper }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ user.first_name|default:user.username }} {{ user.last_name }}</div>
+                        <div class="sidebar-user-email">{{ user.email|default:"No email" }}</div>
+                    </div>
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-block btn-sm">Sign In</a>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+                    <div>
+                        <div class="page-title">{% block page_title %}EventPOS{% endblock %}</div>
+                        <div class="page-subtitle">{% block page_subtitle %}{% endblock %}</div>
+                    </div>
+                </div>
+                <div class="top-bar-right">
+                    <form action="{% url 'shop' %}" method="get" class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" name="q" class="search-input" placeholder="Search menu... (⌘K)" value="{{ request.GET.q|default:'' }}" aria-label="Search products">
+                    </form>
+                    <a href="{% url 'cart' %}" class="top-bar-btn" aria-label="Cart">
+                        🛒
+                        {% if cart_item_count > 0 %}
+                        <span class="count cart-count-badge">{{ cart_item_count }}</span>
+                        {% else %}
+                        <span class="count cart-count-badge" style="display:none">0</span>
+                        {% endif %}
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="top-bar-btn" aria-label="Logout" title="Logout">🚪</a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="top-bar-btn" aria-label="Sign In" title="Sign In">👤</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <p>© 2024 <a href="{% url 'home' %}">EventPOS</a> — Modern Event Catering. Crafted with care.</p>
+                <p style="margin-top: 4px;">Coupons: <strong>WELCOME20</strong> · <strong>FLAT200</strong> · <strong>EVENT10</strong></p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

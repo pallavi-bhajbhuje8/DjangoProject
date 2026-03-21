@@ -1,0 +1,145 @@
+<!-- core/templates/core/patient_records.html -->
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Medical Records{% endblock %}
+
+{% block body %}
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="{% url 'dashboard' %}" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li><a href="{% url 'logout' %}" class="nav-link"><i class="fas fa-sign-out-alt"></i></a></li>
+    </ul>
+</nav>
+
+<div style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+    <div class="fade-in">
+        <div class="page-header">
+            <h1 class="page-title">📋 Medical Records</h1>
+            <p class="page-subtitle">Your complete health history in one place</p>
+        </div>
+
+        <!-- Add Medical History -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-plus-circle"></i> Add Medical History Entry</span>
+            </div>
+            <div class="panel-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="grid grid-3" style="gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            {{ form.condition_type }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Condition Name</label>
+                            {{ form.condition_name }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Severity</label>
+                            {{ form.severity }}
+                        </div>
+                    </div>
+                    <div class="grid grid-2" style="gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Diagnosed Date</label>
+                            {{ form.diagnosed_date }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Record
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Medical History List -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-history"></i> Medical History</span>
+            </div>
+            <div class="panel-body">
+                {% if medical_history %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Condition</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in medical_history %}
+                            <tr>
+                                <td><span class="badge badge-purple">{{ record.get_condition_type_display }}</span></td>
+                                <td><strong>{{ record.condition_name }}</strong></td>
+                                <td>
+                                    <span class="badge badge-{% if record.severity == 'mild' %}green{% elif record.severity == 'moderate' %}yellow{% else %}red{% endif %}">
+                                        {{ record.get_severity_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if record.is_active %}
+                                    <span class="badge badge-green">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-gray">Resolved</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No medical history recorded</h3>
+                    <p style="font-size: 0.85rem;">Add your conditions, allergies, and medications above</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- AI Check History -->
+        {% if symptom_checks %}
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-robot"></i> AI Analysis History</span>
+            </div>
+            <div class="panel-body">
+                {% for check in symptom_checks %}
+                <a href="{% url 'ai_report' check.id %}"
+                   style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-sm); margin-bottom: 6px; border: 1px solid var(--gray-200); transition: var(--transition);"
+                   onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--gray-200)'">
+                    <div class="badge badge-{{ check.urgency_level|urgency_badge }}">
+                        {{ check.get_urgency_level_display }}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">{{ check.symptoms|truncatewords:10 }}</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">{{ check.created_at|date:"M d, Y g:i A" }}</div>
+                    </div>
+                    <span class="badge badge-{% if check.status == 'analyzed' %}blue{% elif check.status == 'reviewed' %}green{% else %}gray{% endif %}">
+                        {{ check.get_status_display }}
+                    </span>
+                    <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

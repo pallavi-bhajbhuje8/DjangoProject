@@ -1,0 +1,215 @@
+<!-- core/templates/core/dashboard_patient.html -->
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block body %}
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <button class="hamburger" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="{% url 'symptom_checker' %}" class="nav-link"><i class="fas fa-robot"></i> AI Check</a></li>
+        <li><a href="{% url 'appointments' %}" class="nav-link"><i class="fas fa-calendar"></i> Appointments</a></li>
+        <li>
+            <img src="{{ profile.avatar_url }}" alt="Avatar" class="nav-avatar">
+        </li>
+        <li><a href="{% url 'logout' %}" class="nav-link"><i class="fas fa-sign-out-alt"></i></a></li>
+    </ul>
+</nav>
+
+<div class="main-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div style="text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem;">
+            <img src="{{ profile.avatar_url }}" alt="Avatar"
+                 style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border: 3px solid var(--primary-light);">
+            <div style="font-weight: 700; font-size: 0.95rem;">{{ profile.user.get_full_name }}</div>
+            <span class="badge badge-blue" style="margin-top: 4px;">Patient</span>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Main Menu</div>
+            <a href="{% url 'dashboard' %}" class="sidebar-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="{% url 'symptom_checker' %}" class="sidebar-link">
+                <i class="fas fa-robot"></i> AI Symptom Check
+            </a>
+            <a href="{% url 'appointments' %}" class="sidebar-link">
+                <i class="fas fa-calendar-alt"></i> Appointments
+                {% if stats.upcoming_appointments %}
+                <span class="sidebar-badge">{{ stats.upcoming_appointments }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'patient_records' %}" class="sidebar-link">
+                <i class="fas fa-file-medical"></i> Medical Records
+            </a>
+            <a href="{% url 'health_metrics' %}" class="sidebar-link">
+                <i class="fas fa-chart-line"></i> Health Metrics
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Account</div>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-user-cog"></i> Profile Settings
+            </a>
+            <a href="{% url 'logout' %}" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content fade-in">
+        <div class="page-header">
+            <h1 class="page-title">Welcome back, {{ profile.user.first_name }} 👋</h1>
+            <p class="page-subtitle">Here's an overview of your health dashboard</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-4" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #EEF2FF; color: var(--primary);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.total_checks }}</h3>
+                    <p>AI Health Checks</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #ECFDF5; color: var(--secondary);">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.upcoming_appointments }}</h3>
+                    <p>Upcoming Appointments</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #FEF3C7; color: var(--accent);">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.active_conditions }}</h3>
+                    <p>Active Conditions</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #FEE2E2; color: var(--danger);">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.health_metrics }}</h3>
+                    <p>Health Metrics</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions (POS-style) -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-bolt"></i> Quick Actions</span>
+            </div>
+            <div class="panel-body">
+                <div class="grid grid-4">
+                    {% for card in health_cards %}
+                    <a href="{{ card.url }}" class="pos-card">
+                        <img src="{{ card.image }}" alt="{{ card.title }}" class="pos-card-img" loading="lazy">
+                        <div class="pos-card-overlay">
+                            <span><i class="fas fa-arrow-right"></i> Open</span>
+                        </div>
+                        <div class="pos-card-body">
+                            <div class="pos-card-icon">{{ card.icon }}</div>
+                            <div class="pos-card-title">{{ card.title }}</div>
+                            <div class="pos-card-desc">{{ card.description }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="grid grid-2">
+            <!-- Recent AI Checks -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-history"></i> Recent AI Checks</span>
+                    <a href="{% url 'symptom_checker' %}" class="btn btn-sm btn-secondary">View All</a>
+                </div>
+                <div class="panel-body">
+                    {% if recent_checks %}
+                        {% for check in recent_checks %}
+                        <a href="{% url 'ai_report' check.id %}" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); margin-bottom: 6px; transition: var(--transition);"
+                           onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background='transparent'">
+                            <div class="badge badge-{{ check.urgency_level|urgency_badge }}">
+                                {{ check.get_urgency_level_display }}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 0.85rem; color: var(--dark);">
+                                    {{ check.symptoms|truncatewords:8 }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">
+                                    {{ check.created_at|timesince }} ago
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--gray-400);"></i>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">🤖</div>
+                            <h3>No checks yet</h3>
+                            <p style="font-size: 0.85rem;">Start your first AI health analysis</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upcoming Appointments -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-calendar"></i> Upcoming Appointments</span>
+                    <a href="{% url 'appointments' %}" class="btn btn-sm btn-secondary">View All</a>
+                </div>
+                <div class="panel-body">
+                    {% if upcoming_appointments %}
+                        {% for apt in upcoming_appointments %}
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); margin-bottom: 6px; background: var(--gray-100);">
+                            <div style="width: 48px; height: 48px; background: var(--primary); color: white; border-radius: var(--radius-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700;">
+                                <span>{{ apt.scheduled_date|date:"d" }}</span>
+                                <span style="font-size: 0.6rem;">{{ apt.scheduled_date|date:"M" }}</span>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 0.85rem;">
+                                    Dr. {{ apt.doctor.user.get_full_name }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">
+                                    {{ apt.get_appointment_type_display }} · {{ apt.scheduled_time|time:"g:i A" }}
+                                </div>
+                            </div>
+                            <span class="badge badge-blue">{{ apt.get_status_display }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📅</div>
+                            <h3>No upcoming appointments</h3>
+                            <p style="font-size: 0.85rem;">Book a consultation with a doctor</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

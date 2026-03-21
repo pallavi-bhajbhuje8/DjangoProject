@@ -1,0 +1,41 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">{{ title }}</h3>
+    <a href="{% url 'dashboard:categories' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back
+    </a>
+</div>
+
+<div class="card rounded-custom" style="max-width: 700px; box-shadow: var(--shadow);">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                {% if field.name == 'is_active' %}
+                <div class="form-check">
+                    {{ field }}
+                    <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+                {% else %}
+                <label class="form-label fw-bold">{{ field.label }}</label>
+                {{ field }}
+                {% endif %}
+                {% if field.errors %}
+                <div class="text-danger mt-1" style="font-size: 0.85rem;">
+                    {% for error in field.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-accent btn-lg">
+                <i class="fas fa-save me-2"></i> Save Category
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

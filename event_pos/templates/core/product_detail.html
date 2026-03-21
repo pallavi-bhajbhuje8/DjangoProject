@@ -1,0 +1,236 @@
+{% extends 'core/base.html' %}
+{% load core_tags %}
+
+{% block title %}{{ product.name }} — EventPOS{% endblock %}
+{% block page_title %}{{ product.name }}{% endblock %}
+{% block page_subtitle %}{{ product.category.name }}{% endblock %}
+
+{% block content %}
+
+<div class="product-detail-layout">
+    <!-- Gallery -->
+    <div class="product-gallery">
+        <div class="product-gallery-main">
+            <img src="{{ product.image }}" alt="{{ product.name }}" style="transition: opacity 0.2s ease;">
+        </div>
+        {% if product.image_2 or product.image_3 %}
+        <div class="product-gallery-thumbs">
+            <div class="product-gallery-thumb active" data-src="{{ product.image }}">
+                <img src="{{ product.image }}" alt="{{ product.name }}">
+            </div>
+            {% if product.image_2 %}
+            <div class="product-gallery-thumb" data-src="{{ product.image_2 }}">
+                <img src="{{ product.image_2 }}" alt="{{ product.name }} view 2">
+            </div>
+            {% endif %}
+            {% if product.image_3 %}
+            <div class="product-gallery-thumb" data-src="{{ product.image_3 }}">
+                <img src="{{ product.image_3 }}" alt="{{ product.name }} view 3">
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Info -->
+    <div class="product-detail-info">
+        <div class="product-detail-category">{{ product.category.icon }} {{ product.category.name }}</div>
+        <h1 class="product-detail-name">{{ product.name }}</h1>
+
+        <div class="product-detail-rating">
+            {% if product.avg_rating > 0 %}
+            {% for i in product.avg_rating|star_range %}
+            <span class="star">★</span>
+            {% endfor %}
+            {% for i in product.avg_rating|empty_star_range %}
+            <span class="star empty">★</span>
+            {% endfor %}
+            <span class="rating-count">({{ product.review_count }} review{{ product.review_count|pluralize }})</span>
+            {% else %}
+            <span class="text-muted" style="font-size: 0.85rem;">No reviews yet</span>
+            {% endif %}
+        </div>
+
+        <div class="product-detail-price">
+            <span class="current">₹{{ product.price }}</span>
+            {% if product.compare_price %}
+            <span class="original">₹{{ product.compare_price }}</span>
+            <span class="discount-badge">{{ product.discount_percent }}% OFF</span>
+            {% endif %}
+        </div>
+
+        <p class="product-detail-desc">{{ product.description }}</p>
+
+        {% if product.calories or product.prep_time or product.serves %}
+        <div class="product-meta-grid">
+            {% if product.calories %}
+            <div class="product-meta-item">
+                <div class="meta-icon">🔥</div>
+                <div class="meta-label">Calories</div>
+                <div class="meta-value">{{ product.calories }}</div>
+            </div>
+            {% endif %}
+            {% if product.prep_time %}
+            <div class="product-meta-item">
+                <div class="meta-icon">⏱</div>
+                <div class="meta-label">Prep Time</div>
+                <div class="meta-value">{{ product.prep_time }}</div>
+            </div>
+            {% endif %}
+            {% if product.serves %}
+            <div class="product-meta-item">
+                <div class="meta-icon">👥</div>
+                <div class="meta-label">Serves</div>
+                <div class="meta-value">{{ product.serves }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Add to Cart -->
+        <form action="{% url 'add_to_cart' product.id %}" method="post" class="ajax-add-to-cart">
+            {% csrf_token %}
+            <div class="product-detail-actions">
+                <div class="quantity-control">
+                    <button type="button" class="quantity-btn qty-decrease" aria-label="Decrease quantity">−</button>
+                    <span class="quantity-value">1</span>
+                    <button type="button" class="quantity-btn qty-increase" aria-label="Increase quantity">+</button>
+                    <input type="hidden" name="quantity" value="1">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    🛒 Add to Cart — ₹{{ product.price }}
+                </button>
+                {% if user.is_authenticated %}
+                <button type="button" class="btn btn-outline btn-icon ajax-wishlist-toggle {% if in_wishlist %}wishlisted{% endif %}"
+                        data-url="{% url 'toggle_wishlist' product.id %}"
+                        data-csrf="{{ csrf_token }}"
+                        aria-label="Toggle wishlist"
+                        style="font-size: 1.2rem;">
+                    {% if in_wishlist %}♥{% else %}♡{% endif %}
+                </button>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if product.brand %}
+        <p class="text-muted" style="font-size: 0.8rem; margin-top: 8px;">Brand: <strong>{{ product.brand }}</strong> · SKU: <span style="font-family: var(--font-mono); font-size: 0.75rem;">{{ product.sku }}</span></p>
+        {% endif %}
+
+        {% if product.in_stock %}
+        <p class="text-success" style="font-size: 0.825rem; margin-top: 8px;">✓ In Stock ({{ product.stock }} available)</p>
+        {% else %}
+        <p class="text-danger" style="font-size: 0.825rem; margin-top: 8px;">✕ Out of Stock</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Reviews -->
+<div class="reviews-section">
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">Reviews & Ratings</h3>
+            {% if product.avg_rating > 0 %}
+            <span style="font-size: 0.85rem;">
+                {% for i in product.avg_rating|star_range %}<span class="star">★</span>{% endfor %}
+                {{ product.avg_rating }} / 5
+            </span>
+            {% endif %}
+        </div>
+        <div class="panel-body">
+            {% if user.is_authenticated %}
+            <form method="post" style="margin-bottom: 28px;">
+                {% csrf_token %}
+                <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
+                    {% if user_review %}Update Your Review{% else %}Write a Review{% endif %}
+                </h4>
+                <div class="form-group">
+                    <label class="form-label">Rating</label>
+                    <div class="rating-select" style="display: flex; gap: 4px; font-size: 1.5rem; cursor: pointer;">
+                        {% for i in "12345" %}
+                        <span class="star-btn {% if user_review and user_review.rating >= forloop.counter %}active{% endif %}"
+                              data-value="{{ forloop.counter }}"
+                              style="color: var(--color-gold); transition: transform 0.15s;">
+                            {% if user_review and user_review.rating >= forloop.counter %}★{% else %}☆{% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="rating" value="{{ user_review.rating|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="review-title">Title (optional)</label>
+                    <input type="text" name="title" id="review-title" class="form-input" value="{{ user_review.title|default:'' }}" placeholder="Sum it up in a few words">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="review-comment">Your Review</label>
+                    <textarea name="comment" id="review-comment" class="form-input" rows="3" placeholder="Share your experience...">{{ user_review.comment|default:'' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+                </button>
+            </form>
+            {% else %}
+            <p class="text-muted mb-2" style="font-size: 0.875rem;">
+                <a href="{% url 'login' %}" class="text-gold">Sign in</a> to leave a review.
+            </p>
+            {% endif %}
+
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-avatar">{{ review.user.first_name|default:review.user.username|make_list|first|upper }}</div>
+                    <div>
+                        <div class="review-author">{{ review.user.first_name|default:review.user.username }}</div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 0.8rem; color: var(--color-gold);">
+                                {% for i in review.rating|star_range %}★{% endfor %}{% for i in review.rating|empty_star_range %}☆{% endfor %}
+                            </span>
+                            <span class="review-date">{{ review.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                </div>
+                {% if review.title %}<p style="font-weight: 600; font-size: 0.875rem; padding-left: 48px; margin-bottom: 4px;">{{ review.title }}</p>{% endif %}
+                <p class="review-body">{{ review.comment }}</p>
+            </div>
+            {% empty %}
+            {% if not user.is_authenticated or not user_review %}
+            <p class="text-muted text-center" style="padding: 20px; font-size: 0.875rem;">No reviews yet. Be the first to share your thoughts!</p>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Related Products -->
+{% if related_products %}
+<div class="section-header" style="margin-top: 40px;">
+    <div>
+        <h2 class="section-title">You Might Also Like</h2>
+        <p class="section-subtitle">More from {{ product.category.name }}</p>
+    </div>
+</div>
+<div class="products-grid">
+    {% for rp in related_products %}
+    <div class="product-card reveal-on-scroll">
+        <a href="{% url 'product_detail' rp.slug %}" class="product-card-image">
+            <img src="{{ rp.image }}" alt="{{ rp.name }}" loading="lazy">
+        </a>
+        <div class="product-card-body">
+            <div class="product-card-category">{{ rp.category.name }}</div>
+            <a href="{% url 'product_detail' rp.slug %}"><h3 class="product-card-name">{{ rp.name }}</h3></a>
+            <div class="product-card-footer">
+                <div class="product-price">
+                    <span class="current">₹{{ rp.price }}</span>
+                </div>
+                <form action="{% url 'add_to_cart' rp.id %}" method="post" class="ajax-add-to-cart">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="add-to-cart-btn">+ Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

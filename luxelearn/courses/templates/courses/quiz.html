@@ -1,0 +1,68 @@
+{% extends 'courses/base.html' %}
+{% load course_tags %}
+
+{% block title %}Quiz: {{ lesson.title }} — LuxLearn{% endblock %}
+{% block page_title %}Quiz{% endblock %}
+{% block page_sub %}{{ course.title|truncatewords:5 }}{% endblock %}
+
+{% block content %}
+
+<div class="quiz-wrap">
+    <div style="margin-bottom: 24px;">
+        <a href="{% url 'course_detail' course.slug %}" class="text-gold" style="font-size: 0.82rem;">← Back to {{ course.title|truncatewords:4 }}</a>
+        <h1 class="detail-title mt-1">{{ lesson.title }}</h1>
+        <p class="text-muted">{{ questions|length }} questions · Pass mark: {{ quiz.passing_score }}%</p>
+    </div>
+
+    {% if last_attempt %}
+    <div class="panel mb-3">
+        <div class="panel-body">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div style="font-size: 0.82rem; font-weight: 700;">Last Attempt</div>
+                    <div style="font-size: 0.78rem; color: var(--charcoal-faint);">{{ last_attempt.attempted_at|timesince }} ago</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;">
+                        {{ last_attempt.score }}/{{ last_attempt.total_questions }}
+                    </span>
+                    <span class="badge {% if last_attempt.passed %}badge-gold{% else %}badge-sale{% endif %}" style="font-size: 0.7rem; padding: 4px 10px;">
+                        {% if last_attempt.passed %}PASSED{% else %}NOT PASSED{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% for q in questions %}
+        <div class="question-card">
+            <div class="question-num">Question {{ forloop.counter }}</div>
+            <div class="question-text">{{ q.text }}</div>
+            <div class="option-group">
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="A" required> <strong>A.</strong> {{ q.option_a }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="B"> <strong>B.</strong> {{ q.option_b }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="C"> <strong>C.</strong> {{ q.option_c }}
+                </label>
+                <label class="option-label">
+                    <input type="radio" name="q_{{ q.id }}" value="D"> <strong>D.</strong> {{ q.option_d }}
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button type="submit" class="btn btn-primary btn-lg">Submit Quiz</button>
+            <a href="{% url 'course_detail' course.slug %}" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

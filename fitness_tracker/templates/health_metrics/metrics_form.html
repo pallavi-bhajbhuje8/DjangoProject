@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-card">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div style="width:48px;height:48px;background:rgba(39,174,96,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-heart-pulse text-accent" style="font-size:1.3rem;"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">{{ title }}</h5>
+                    <small class="text-muted">Record your daily health measurements</small>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Weight (kg)</label>
+                        {{ form.weight }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Heart Rate (bpm)</label>
+                        {{ form.heart_rate }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">BP Systolic</label>
+                        {{ form.blood_pressure_systolic }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">BP Diastolic</label>
+                        {{ form.blood_pressure_diastolic }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Sleep (hours)</label>
+                        {{ form.sleep_hours }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Water Intake (liters)</label>
+                        {{ form.water_intake }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Body Fat (%)</label>
+                        {{ form.body_fat }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Notes</label>
+                    {{ form.notes }}
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-accent">
+                        <i class="bi bi-check-lg me-2"></i>Save Metrics
+                    </button>
+                    <a href="{% url 'health_metrics:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

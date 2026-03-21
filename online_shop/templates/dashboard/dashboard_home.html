@@ -1,0 +1,211 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Dashboard Overview</h4>
+    <span class="text-muted">Welcome back, {{ request.user.first_name|default:request.user.username }}!</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-orders"><i class="fas fa-shopping-cart"></i></div>
+            <div class="stat-info">
+                <h3>{{ total_orders|intcomma }}</h3>
+                <p>Total Orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-users"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+                <h3>{{ total_users|intcomma }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-products"><i class="fas fa-box"></i></div>
+            <div class="stat-info">
+                <h3>{{ total_products|intcomma }}</h3>
+                <p>Total Products</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-revenue"><i class="fas fa-dollar-sign"></i></div>
+            <div class="stat-info">
+                <h3>${{ total_revenue|floatformat:0|intcomma }}</h3>
+                <p>Total Revenue</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+<div class="row g-4 mb-4">
+    {% if pending_orders > 0 %}
+    <div class="col-md-6">
+        <div class="alert alert-warning mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>{{ pending_orders }}</strong> order{{ pending_orders|pluralize }} pending review.
+            <a href="{% url 'dashboard:manage_orders' %}?status=pending" class="alert-link">View now</a>
+        </div>
+    </div>
+    {% endif %}
+    {% if low_stock > 0 %}
+    <div class="col-md-6">
+        <div class="alert alert-danger mb-0">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>{{ low_stock }}</strong> product{{ low_stock|pluralize }} with low stock.
+            <a href="{% url 'dashboard:manage_products' %}" class="alert-link">Manage inventory</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <h5 class="mb-3">Revenue Overview</h5>
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <h5 class="mb-3">Order Status</h5>
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Products & Recent Orders -->
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="data-card">
+            <div class="card-header-custom">
+                <h5>Top Selling Products</h5>
+            </div>
+            <div class="p-3">
+                {% for item in top_products %}
+                <div class="d-flex justify-content-between align-items-center py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-accent rounded-circle" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+                            {{ forloop.counter }}
+                        </span>
+                        <span class="fw-semibold">{{ item.product_name|truncatewords:5 }}</span>
+                    </div>
+                    <span class="badge bg-success">{{ item.total_sold }} sold</span>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3">No sales data yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="data-card">
+            <div class="card-header-custom">
+                <h5>Recent Orders</h5>
+                <a href="{% url 'dashboard:manage_orders' %}" class="btn btn-sm btn-accent">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><strong>{{ order.order_id }}</strong></td>
+                            <td>{{ order.user.first_name|default:order.user.username }}</td>
+                            <td>${{ order.total|floatformat:2 }}</td>
+                            <td><span class="badge bg-{{ order.status_color }}">{{ order.get_status_display }}</span></td>
+                            <td>{{ order.created_at|date:"M d" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Revenue ($)',
+                data: {{ chart_data|safe }},
+                backgroundColor: 'rgba(230, 126, 34, 0.7)',
+                borderColor: '#E67E22',
+                borderWidth: 2,
+                borderRadius: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ status_labels|safe }},
+            datasets: [{
+                data: {{ status_data|safe }},
+                backgroundColor: ['#F39C12', '#3498DB', '#2C3E50', '#27AE60', '#E74C3C'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 15 }
+                }
+            },
+            cutout: '60%',
+        }
+    });
+</script>
+{% endblock %}

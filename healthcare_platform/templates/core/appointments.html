@@ -1,0 +1,145 @@
+<!-- core/templates/core/appointments.html -->
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Appointments{% endblock %}
+
+{% block body %}
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+        MediCare AI
+    </a>
+    <ul class="navbar-nav desktop-nav">
+        <li><a href="{% url 'dashboard' %}" class="nav-link"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li><a href="{% url 'logout' %}" class="nav-link"><i class="fas fa-sign-out-alt"></i></a></li>
+    </ul>
+</nav>
+
+<div style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
+    <div class="fade-in">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 class="page-title">📅 Appointments</h1>
+                <p class="page-subtitle">Manage your medical consultations</p>
+            </div>
+            {% if profile.role == 'patient' %}
+            <a href="{% url 'book_appointment' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Book New
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Booking Form (for patients) -->
+        {% if doctors %}
+        <div class="panel" style="margin-bottom: 2rem;">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-calendar-plus"></i> Book an Appointment</span>
+            </div>
+            <div class="panel-body">
+                <form method="POST" action="{% url 'book_appointment' %}">
+                    {% csrf_token %}
+                    <div class="grid grid-2" style="gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Select Doctor</label>
+                            <select name="doctor" class="form-input" required>
+                                <option value="">Choose a doctor...</option>
+                                {% for doc in doctors %}
+                                <option value="{{ doc.id }}">
+                                    Dr. {{ doc.user.get_full_name }} — {{ doc.doctor_info.get_specialty_display }}
+                                    (⭐{{ doc.doctor_info.rating }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Consultation Type</label>
+                            <select name="appointment_type" class="form-input">
+                                <option value="video">📹 Video Consultation</option>
+                                <option value="phone">📞 Phone Consultation</option>
+                                <option value="in_person">🏥 In-Person Visit</option>
+                                <option value="chat">💬 Chat Consultation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="scheduled_date" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="time" name="scheduled_time" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reason for Visit</label>
+                        <textarea name="reason" class="form-textarea" rows="2"
+                                  placeholder="Briefly describe why you need this appointment..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Confirm Booking
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Appointments List -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title"><i class="fas fa-list"></i> Your Appointments</span>
+            </div>
+            <div class="panel-body">
+                {% if appointments %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>{% if profile.role == 'doctor' %}Patient{% else %}Doctor{% endif %}</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for apt in appointments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ apt.scheduled_date|date:"M d, Y" }}</strong><br>
+                                    <span style="font-size: 0.8rem; color: var(--gray-500);">{{ apt.scheduled_time|time:"g:i A" }}</span>
+                                </td>
+                                <td>
+                                    {% if profile.role == 'doctor' %}
+                                        {{ apt.patient.user.get_full_name }}
+                                    {% else %}
+                                        Dr. {{ apt.doctor.user.get_full_name }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-blue">{{ apt.get_appointment_type_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{% if apt.status == 'completed' %}green{% elif apt.status == 'cancelled' %}red{% elif apt.status == 'scheduled' %}yellow{% else %}blue{% endif %}">
+                                        {{ apt.get_status_display }}
+                                    </span>
+                                </td>
+                                <td style="max-width: 200px;">
+                                    {{ apt.reason|truncatewords:10|default:"—" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h3>No appointments yet</h3>
+                    <p style="font-size: 0.85rem;">Your appointments will appear here</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

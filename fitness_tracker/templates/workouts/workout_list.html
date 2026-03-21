@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Workouts{% endblock %}
+{% block page_title %}Workouts{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-activity me-2 text-accent"></i>My Workouts</h2>
+    <a href="{% url 'workouts:create' %}" class="btn btn-accent">
+        <i class="bi bi-plus-lg me-2"></i>Log Workout
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-3 col-6">
+            <label class="form-label small fw-bold">Workout Type</label>
+            <select name="type" class="form-select form-select-sm">
+                <option value="">All Types</option>
+                {% for value, label in workout_types %}
+                    <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 col-6">
+            <label class="form-label small fw-bold">Intensity</label>
+            <select name="intensity" class="form-select form-select-sm">
+                <option value="">All</option>
+                {% for value, label in intensity_choices %}
+                    <option value="{{ value }}" {% if selected_intensity == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 col-6">
+            <label class="form-label small fw-bold">From</label>
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request.GET.date_from }}">
+        </div>
+        <div class="col-md-2 col-6">
+            <label class="form-label small fw-bold">To</label>
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request.GET.date_to }}">
+        </div>
+        <div class="col-md-2 col-6">
+            <button type="submit" class="btn btn-accent btn-sm w-100">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+        </div>
+        <div class="col-md-1 col-6">
+            <a href="{% url 'workouts:list' %}" class="btn btn-outline-secondary btn-sm w-100">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Workout List -->
+<div class="dashboard-card">
+    <div class="card-body p-0">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Distance</th>
+                        <th>Calories</th>
+                        <th>Intensity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for workout in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="workout-badge" style="background: {{ workout.workout_color }}15; color: {{ workout.workout_color }};">
+                                <i class="bi {{ workout.workout_icon }}"></i>
+                                {{ workout.get_workout_type_display }}
+                            </span>
+                        </td>
+                        <td><strong>{{ workout.duration }}</strong> min</td>
+                        <td>
+                            {% if workout.distance %}
+                                {{ workout.distance }} km
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ workout.calories_burned }}</strong> kcal</td>
+                        <td>
+                            <span class="badge {% if workout.intensity == 'low' %}bg-success{% elif workout.intensity == 'medium' %}bg-info{% elif workout.intensity == 'high' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ workout.get_intensity_display }}
+                            </span>
+                        </td>
+                        <td>{{ workout.date|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'workouts:detail' workout.pk %}" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'workouts:edit' workout.pk %}" class="btn btn-outline-accent" data-bs-toggle="tooltip" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{% url 'workouts:delete' workout.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" data-confirm-delete data-bs-toggle="tooltip" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center py-3">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                        </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-activity d-block"></i>
+            <h5>No workouts found</h5>
+            <p>Start logging your workouts to track your progress</p>
+            <a href="{% url 'workouts:create' %}" class="btn btn-accent">Log Your First Workout</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

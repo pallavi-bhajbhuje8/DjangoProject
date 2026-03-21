@@ -1,0 +1,99 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard — EventPOS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
+
+{% block content %}
+
+<!-- Welcome -->
+<div class="welcome-section animate-in">
+    <div class="welcome-text">
+        <h2>Hello, {{ user.first_name|default:user.username }}! 👋</h2>
+        <p>Here's a quick overview of your account and recent activity.</p>
+    </div>
+    <a href="{% url 'shop' %}" class="btn btn-primary">Browse Menu →</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-card animate-in delay-1">
+        <div class="stat-card-header">
+            <span class="stat-card-label">Total Orders</span>
+            <span class="stat-card-icon gold">📦</span>
+        </div>
+        <div class="stat-card-value">{{ total_orders }}</div>
+    </div>
+    <div class="stat-card animate-in delay-2">
+        <div class="stat-card-header">
+            <span class="stat-card-label">Total Spent</span>
+            <span class="stat-card-icon green">💰</span>
+        </div>
+        <div class="stat-card-value">₹{{ total_spent }}</div>
+    </div>
+    <div class="stat-card animate-in delay-3">
+        <div class="stat-card-header">
+            <span class="stat-card-label">Wishlist Items</span>
+            <span class="stat-card-icon blue">♥</span>
+        </div>
+        <div class="stat-card-value">{{ wishlist_items|length }}</div>
+    </div>
+    <div class="stat-card animate-in delay-4">
+        <div class="stat-card-header">
+            <span class="stat-card-label">Member Since</span>
+            <span class="stat-card-icon gold">⭐</span>
+        </div>
+        <div class="stat-card-value" style="font-size: 1rem;">{{ user.date_joined|date:"M Y" }}</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Recent Orders -->
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">Recent Orders</h3>
+            <a href="{% url 'order_history' %}" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <div class="panel-body">
+            {% for order in recent_orders %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--color-border-subtle);">
+                <div>
+                    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-gold);">{{ order.order_id }}</div>
+                    <div style="font-size: 0.72rem; color: var(--color-text-muted);">{{ order.created_at|date:"d M Y" }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+                    <span style="font-weight: 600; font-size: 0.875rem;">₹{{ order.total }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center" style="padding: 20px; font-size: 0.875rem;">No orders yet. <a href="{% url 'shop' %}" class="text-gold">Start ordering!</a></p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Wishlist -->
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">Your Wishlist</h3>
+        </div>
+        <div class="panel-body">
+            {% for item in wishlist_items %}
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--color-border-subtle);">
+                <div style="width: 44px; height: 44px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0;">
+                    <img src="{{ item.product.image }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="flex: 1;">
+                    <a href="{% url 'product_detail' item.product.slug %}" style="font-size: 0.825rem; font-weight: 600;">{{ item.product.name }}</a>
+                    <div style="font-size: 0.72rem; color: var(--color-text-muted);">{{ item.product.category.name }}</div>
+                </div>
+                <span style="font-weight: 600; font-size: 0.825rem; color: var(--color-gold);">₹{{ item.product.price }}</span>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center" style="padding: 20px; font-size: 0.875rem;">Your wishlist is empty.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

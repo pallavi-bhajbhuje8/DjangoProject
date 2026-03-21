@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Order History — EventPOS{% endblock %}
+{% block page_title %}Order History{% endblock %}
+{% block page_subtitle %}Track your past orders{% endblock %}
+
+{% block content %}
+
+{% for order in orders %}
+<div class="order-card animate-in" style="animation-delay: {{ forloop.counter0 }}00ms;">
+    <div class="order-card-header">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <span class="order-id">{{ order.order_id }}</span>
+            <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span class="order-date">{{ order.created_at|date:"d M Y, h:i A" }}</span>
+            <span style="font-size: 0.78rem; color: var(--color-text-muted);">{{ order.get_payment_method_display }}</span>
+        </div>
+    </div>
+    <div class="order-card-body">
+        {% for item in order.items.all %}
+        <div class="order-item-row">
+            <div class="order-item-img">
+                <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+            </div>
+            <span class="order-item-name">{{ item.product_name }}</span>
+            <span class="order-item-qty">× {{ item.quantity }}</span>
+            <span class="order-item-price">₹{{ item.total_price }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="order-card-footer">
+        {% if order.discount > 0 %}
+        <span class="text-success" style="font-size: 0.78rem; margin-right: 16px;">Saved ₹{{ order.discount }}</span>
+        {% endif %}
+        <div class="order-total"><span>Total:</span> ₹{{ order.total }}</div>
+    </div>
+</div>
+{% empty %}
+<div class="empty-state">
+    <div class="empty-state-icon">📦</div>
+    <h3 class="empty-state-title">No orders yet</h3>
+    <p class="empty-state-desc">Your order history will appear here once you place your first order.</p>
+    <a href="{% url 'shop' %}" class="btn btn-primary btn-lg">Browse Menu →</a>
+</div>
+{% endfor %}
+
+{% endblock %}

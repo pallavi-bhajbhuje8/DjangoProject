@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-card">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div style="width:48px;height:48px;background:rgba(39,174,96,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-egg-fried text-accent" style="font-size:1.3rem;"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">{{ title }}</h5>
+                    <small class="text-muted">Record what you ate and its nutritional value</small>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Meal Name</label>
+                        {{ form.meal_name }}
+                        {% if form.meal_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.meal_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Meal Time</label>
+                        {{ form.meal_time }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Calories</label>
+                        {{ form.calories }}
+                    </div>
+                </div>
+
+                <h6 class="text-muted mb-3 mt-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                    Macronutrients
+                </h6>
+
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label">Protein (g)</label>
+                        {{ form.protein }}
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label">Carbs (g)</label>
+                        {{ form.carbs }}
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label">Fat (g)</label>
+                        {{ form.fat }}
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label">Fiber (g)</label>
+                        {{ form.fiber }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Notes</label>
+                    {{ form.notes }}
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-accent">
+                        <i class="bi bi-check-lg me-2"></i>{% if meal %}Update{% else %}Save{% endif %} Meal
+                    </button>
+                    <a href="{% url 'meals:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

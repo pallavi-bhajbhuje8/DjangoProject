@@ -1,0 +1,58 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Reports{% endblock %}
+
+{% block dashboard_content %}
+<h3 class="fw-bold mb-4">Sales Reports</h3>
+
+<!-- SUMMARY CARDS -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card revenue">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">${{ total_revenue|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card orders">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-value">{{ total_orders }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card products">
+            <div class="stat-label">Average Order Value</div>
+            <div class="stat-value">${{ avg_order_value|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- CATEGORY SALES -->
+<div class="card rounded-custom" style="box-shadow: var(--shadow);">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">Sales by Category</h5>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Items Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in category_sales %}
+                    <tr>
+                        <td class="fw-bold">{{ sale.product__category__name|default:"Uncategorized" }}</td>
+                        <td>{{ sale.total_sales }}</td>
+                        <td class="fw-bold text-accent">${{ sale.total_revenue|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center py-4 text-muted">No sales data available</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

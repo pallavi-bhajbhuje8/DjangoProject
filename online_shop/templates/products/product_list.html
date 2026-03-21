@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- PAGE HEADER -->
+    <div class="section-header mb-4">
+        <h2>
+            {% if query %}Search Results for "{{ query }}"{% else %}All Products{% endif %}
+        </h2>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <form method="GET" action="{% url 'products:product_list' %}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Search</label>
+                <input type="text" name="q" class="form-control" placeholder="Search products..." 
+                       value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Sort By</label>
+                <select name="sort" class="form-select">
+                    <option value="">Default</option>
+                    <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Top Rated</option>
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-accent w-100">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- PRODUCTS GRID -->
+    {% if products %}
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="product-card">
+                <div class="img-wrapper">
+                    {% if product.get_discount_percentage > 0 %}
+                    <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                    {% endif %}
+                    <a href="{% url 'products:product_detail' product.slug %}">
+                        <img src="{{ product.product_image }}" class="card-img-top" alt="{{ product.product_name }}">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="product-category">{{ product.category.name }}</div>
+                    <h5 class="card-title">
+                        <a href="{% url 'products:product_detail' product.slug %}">{{ product.product_name }}</a>
+                    </h5>
+                    <div class="rating mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.rating %}
+                            <i class="fas fa-star"></i>
+                            {% else %}
+                            <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <small class="text-muted ms-1">({{ product.rating }})</small>
+                    </div>
+                    <div class="price mb-3">
+                        ${{ product.get_effective_price|floatformat:2 }}
+                        {% if product.discount_price and product.discount_price < product.price %}
+                        <span class="original-price">${{ product.price|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'cart:add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-add-cart" {% if not product.is_in_stock %}disabled{% endif %}>
+                            {% if product.is_in_stock %}
+                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                            {% else %}
+                            <i class="fas fa-times me-1"></i> Out of Stock
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'users:login' %}" class="btn btn-add-cart">
+                        <i class="fas fa-sign-in-alt me-1"></i> Login to Buy
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h4>No products found</h4>
+        <p>Try different search terms or browse our categories.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-accent mt-3">
+            <i class="fas fa-th-large me-1"></i> View All Products
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

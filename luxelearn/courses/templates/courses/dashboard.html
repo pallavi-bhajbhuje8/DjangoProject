@@ -1,0 +1,85 @@
+{% extends 'courses/base.html' %}
+{% load course_tags %}
+
+{% block title %}Dashboard — LuxLearn{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Welcome back, {{ user.first_name|default:user.username }}{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+    <div class="stat-card anim d1">
+        <div class="stat-header"><span class="stat-label">Enrolled</span><span class="stat-icon gold">📚</span></div>
+        <div class="stat-value">{{ total_enrolled }}</div>
+    </div>
+    <div class="stat-card anim d2">
+        <div class="stat-header"><span class="stat-label">Completed</span><span class="stat-icon green">🏆</span></div>
+        <div class="stat-value">{{ completed_count }}</div>
+    </div>
+    <div class="stat-card anim d3">
+        <div class="stat-header"><span class="stat-label">In Progress</span><span class="stat-icon blue">📖</span></div>
+        <div class="stat-value">{{ in_progress }}</div>
+    </div>
+    <div class="stat-card anim d4">
+        <div class="stat-header"><span class="stat-label">Total Invested</span><span class="stat-icon warm">💰</span></div>
+        <div class="stat-value">₹{{ total_spent }}</div>
+    </div>
+</div>
+
+<div class="dash-grid">
+    <div class="panel">
+        <div class="panel-head">
+            <h3 class="panel-title">My Courses</h3>
+            <a href="{% url 'catalog' %}" class="btn btn-ghost btn-sm">Browse More →</a>
+        </div>
+        <div class="panel-body">
+            {% for enrollment in enrollments %}
+            <div class="enrollment-card">
+                <a href="{% url 'course_detail' enrollment.course.slug %}" class="enrollment-img">
+                    <img src="{{ enrollment.course.image }}" alt="{{ enrollment.course.title }}">
+                </a>
+                <div class="enrollment-info">
+                    <a href="{% url 'course_detail' enrollment.course.slug %}">
+                        <div class="enrollment-title">{{ enrollment.course.title }}</div>
+                    </a>
+                    <div class="enrollment-meta">
+                        {{ enrollment.course.instructor.user.get_full_name }} · {{ enrollment.completed_lessons }}/{{ enrollment.course.lesson_count }} lessons
+                    </div>
+                    <div class="progress-bar-wrap mt-1">
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: {{ enrollment.progress_percent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <span style="font-weight: 700; font-size: 0.82rem; color: var(--gold); min-width: 40px; text-align: right;">{{ enrollment.progress_percent }}%</span>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <h3>No courses yet</h3>
+                <p>Start your learning journey today.</p>
+                <a href="{% url 'catalog' %}" class="btn btn-primary">Explore Courses</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head"><h3 class="panel-title">Recent Payments</h3></div>
+        <div class="panel-body">
+            {% for p in recent_payments %}
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--cream); font-size: 0.84rem;">
+                <div>
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--gold);">{{ p.payment_id }}</div>
+                    <div style="font-size: 0.72rem; color: var(--charcoal-faint);">{{ p.created_at|date:"d M Y" }}</div>
+                </div>
+                <span style="font-weight: 700;">₹{{ p.total }}</span>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center" style="padding: 16px; font-size: 0.84rem;">No payments yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

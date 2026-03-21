@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Meal Tracker{% endblock %}
+{% block page_title %}Meal Tracker{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-egg-fried me-2 text-accent"></i>Meal Tracker</h2>
+    <a href="{% url 'meals:create' %}" class="btn btn-accent">
+        <i class="bi bi-plus-lg me-2"></i>Log Meal
+    </a>
+</div>
+
+<!-- Daily Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon bg-warning mx-auto mb-2">
+                <i class="bi bi-fire"></i>
+            </div>
+            <div class="stat-value">{{ daily_summary.total_calories|default:"0" }}</div>
+            <div class="stat-label">Calories</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon bg-info mx-auto mb-2">
+                <i class="bi bi-droplet"></i>
+            </div>
+            <div class="stat-value">{{ daily_summary.total_protein|default:"0" }}g</div>
+            <div class="stat-label">Protein</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon bg-accent mx-auto mb-2">
+                <i class="bi bi-lightning"></i>
+            </div>
+            <div class="stat-value">{{ daily_summary.total_carbs|default:"0" }}g</div>
+            <div class="stat-label">Carbs</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon bg-danger mx-auto mb-2">
+                <i class="bi bi-circle-fill"></i>
+            </div>
+            <div class="stat-value">{{ daily_summary.total_fat|default:"0" }}g</div>
+            <div class="stat-label">Fat</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-4 col-6">
+            <label class="form-label small fw-bold">Date</label>
+            <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-4 col-6">
+            <label class="form-label small fw-bold">Meal Time</label>
+            <select name="meal_time" class="form-select form-select-sm">
+                <option value="">All Meals</option>
+                {% for value, label in meal_time_choices %}
+                    <option value="{{ value }}" {% if selected_meal_time == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 col-6">
+            <button type="submit" class="btn btn-accent btn-sm w-100">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+        </div>
+        <div class="col-md-2 col-6">
+            <a href="{% url 'meals:list' %}" class="btn btn-outline-secondary btn-sm w-100">Today</a>
+        </div>
+    </form>
+</div>
+
+<!-- Meals Table -->
+<div class="dashboard-card">
+    <div class="card-body p-0">
+        {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Meal</th>
+                        <th>Type</th>
+                        <th>Calories</th>
+                        <th>Protein</th>
+                        <th>Carbs</th>
+                        <th>Fat</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meal in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi {{ meal.meal_icon }} text-accent"></i>
+                                <strong>{{ meal.meal_name }}</strong>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-accent-soft text-accent">{{ meal.get_meal_time_display }}</span></td>
+                        <td><strong>{{ meal.calories }}</strong> kcal</td>
+                        <td>{{ meal.protein }}g</td>
+                        <td>{{ meal.carbs }}g</td>
+                        <td>{{ meal.fat }}g</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'meals:edit' meal.pk %}" class="btn btn-outline-accent">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{% url 'meals:delete' meal.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger" data-confirm-delete>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-egg-fried d-block"></i>
+            <h5>No meals logged for this day</h5>
+            <p>Track what you eat to monitor your nutrition</p>
+            <a href="{% url 'meals:create' %}" class="btn btn-accent">Log a Meal</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Profile — EventPOS{% endblock %}
+{% block page_title %}Profile{% endblock %}
+{% block page_subtitle %}Manage your account settings{% endblock %}
+
+{% block content %}
+
+<div class="profile-layout">
+    <!-- Profile Card -->
+    <div class="panel profile-card">
+        <div class="panel-body" style="padding: 28px;">
+            <div class="profile-avatar-lg">
+                {{ user.first_name|default:user.username|make_list|first|upper }}
+            </div>
+            <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 4px;">
+                {{ user.first_name|default:user.username }} {{ user.last_name }}
+            </h3>
+            <p class="text-muted" style="font-size: 0.825rem;">{{ user.email }}</p>
+            <p class="text-muted" style="font-size: 0.75rem; margin-top: 8px;">
+                Member since {{ user.date_joined|date:"F Y" }}
+            </p>
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <a href="{% url 'order_history' %}" class="btn btn-outline btn-sm btn-block">📦 Order History</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline btn-sm btn-block">📊 Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm btn-block">🚪 Sign Out</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile -->
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">Edit Profile</h3>
+        </div>
+        <div class="panel-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">First Name</label>
+                        <input type="text" name="first_name" id="first_name" class="form-input" value="{{ user.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" class="form-input" value="{{ user.last_name }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-input" value="{{ user.email }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone</label>
+                    <input type="tel" name="phone" id="phone" class="form-input" value="{{ profile.phone }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="address">Address</label>
+                    <textarea name="address" id="address" class="form-input" rows="2">{{ profile.address }}</textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="city">City</label>
+                        <input type="text" name="city" id="city" class="form-input" value="{{ profile.city }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="state">State</label>
+                        <input type="text" name="state" id="state" class="form-input" value="{{ profile.state }}">
+                    </div>
+                </div>
+                <div class="form-group" style="max-width: 200px;">
+                    <label class="form-label" for="zipcode">PIN Code</label>
+                    <input type="text" name="zipcode" id="zipcode" class="form-input" value="{{ profile.zipcode }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

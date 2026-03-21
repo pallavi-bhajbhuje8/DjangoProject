@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories - ShopVista{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="breadcrumb-custom">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active">Categories</li>
+        </ol>
+    </nav>
+
+    <h2 class="section-title text-center">All Categories</h2>
+    <p class="section-subtitle text-center">Browse products by category</p>
+
+    <div class="row g-4 justify-content-center">
+        {% for category in categories %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <a href="{% url 'categories:category_products' slug=category.slug %}" class="text-decoration-none">
+                <div class="category-card animate-fade-in">
+                    <img src="{{ category.image }}" alt="{{ category.name }}"
+                         data-fallback="https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400">
+                    <h5>{{ category.name }}</h5>
+                    <p>{{ category.product_count }} product{{ category.product_count|pluralize }}</p>
+                    {% if category.description %}
+                    <small class="text-muted">{{ category.description|truncatechars:60 }}</small>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="bi bi-tags"></i>
+                <h4>No categories available</h4>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

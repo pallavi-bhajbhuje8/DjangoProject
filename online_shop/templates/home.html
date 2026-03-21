@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1>Discover Amazing Products at Unbeatable Prices</h1>
+                <p>Shop the latest trends in electronics, fashion, books, and more. Free shipping on orders over $50!</p>
+                <a href="{% url 'products:product_list' %}" class="hero-btn">
+                    <i class="fas fa-shopping-bag me-2"></i> Shop Now
+                </a>
+                <a href="{% url 'categories:category_list' %}" class="hero-btn" style="background: transparent; border: 2px solid #fff; margin-left: 15px;">
+                    <i class="fas fa-tags me-2"></i> Browse Categories
+                </a>
+            </div>
+            <div class="col-lg-5 text-center d-none d-lg-block">
+                <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=500" 
+                     alt="Shopping" class="img-fluid" style="border-radius: 20px; max-height: 350px; object-fit: cover;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <h2>Shop by Category</h2>
+            <a href="{% url 'categories:category_list' %}" class="btn btn-outline-dark">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-4 mt-2">
+            {% for category in categories %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{% url 'categories:category_products' category.slug %}" class="category-card">
+                    <img src="{{ category.image }}" alt="{{ category.name }}">
+                    <div class="card-body">
+                        <h5>{{ category.name }}</h5>
+                        <p>{{ category.product_count }} Products</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+{% if featured_products %}
+<section class="py-5" style="background: #fff;">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-star text-accent me-2"></i>Featured Products</h2>
+        </div>
+        <div class="row g-4 mt-2">
+            {% for product in featured_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card">
+                    <div class="img-wrapper">
+                        {% if product.get_discount_percentage > 0 %}
+                        <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'products:product_detail' product.slug %}">
+                            <img src="{{ product.product_image }}" class="card-img-top" alt="{{ product.product_name }}">
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="product-category">{{ product.category.name }}</div>
+                        <h5 class="card-title">
+                            <a href="{% url 'products:product_detail' product.slug %}">{{ product.product_name }}</a>
+                        </h5>
+                        <div class="rating mb-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= product.rating %}
+                                <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <small class="text-muted ms-1">({{ product.rating }})</small>
+                        </div>
+                        <div class="price mb-3">
+                            ${{ product.get_effective_price|floatformat:2 }}
+                            {% if product.discount_price and product.discount_price < product.price %}
+                            <span class="original-price">${{ product.price|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                        {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'cart:add_to_cart' product.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-add-cart" {% if not product.is_in_stock %}disabled{% endif %}>
+                                {% if product.is_in_stock %}
+                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                {% else %}
+                                <i class="fas fa-times me-1"></i> Out of Stock
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'users:login' %}" class="btn btn-add-cart">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login to Buy
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- LATEST PRODUCTS -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <h2>Latest Products</h2>
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline-dark">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-4 mt-2">
+            {% for product in latest_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card">
+                    <div class="img-wrapper">
+                        {% if product.get_discount_percentage > 0 %}
+                        <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'products:product_detail' product.slug %}">
+                            <img src="{{ product.product_image }}" class="card-img-top" alt="{{ product.product_name }}">
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="product-category">{{ product.category.name }}</div>
+                        <h5 class="card-title">
+                            <a href="{% url 'products:product_detail' product.slug %}">{{ product.product_name }}</a>
+                        </h5>
+                        <div class="rating mb-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= product.rating %}
+                                <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <small class="text-muted ms-1">({{ product.rating }})</small>
+                        </div>
+                        <div class="price mb-3">
+                            ${{ product.get_effective_price|floatformat:2 }}
+                            {% if product.discount_price and product.discount_price < product.price %}
+                            <span class="original-price">${{ product.price|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                        {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'cart:add_to_cart' product.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-add-cart" {% if not product.is_in_stock %}disabled{% endif %}>
+                                {% if product.is_in_stock %}
+                                <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                                {% else %}
+                                <i class="fas fa-times me-1"></i> Out of Stock
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'users:login' %}" class="btn btn-add-cart">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login to Buy
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

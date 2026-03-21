@@ -1,0 +1,44 @@
+<!-- core/templates/core/login.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block body %}
+<div class="auth-container">
+    <div class="auth-card fade-in">
+        <div class="auth-header">
+            <a href="/" class="navbar-brand" style="justify-content: center; margin-bottom: 1rem;">
+                <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                MediCare AI
+            </a>
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your healthcare dashboard</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input"
+                       placeholder="Enter your username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input"
+                       placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; color: var(--gray-600); font-size: 0.9rem;">
+            Don't have an account?
+            <a href="{% url 'register' %}" style="color: var(--primary); font-weight: 600;">Create one</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

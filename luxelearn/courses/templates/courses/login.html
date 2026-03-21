@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — LuxLearn</title>
+    <link rel="stylesheet" href="{% static 'css/luxlearn.css' %}">
+</head>
+<body>
+{% if messages %}
+<div class="alerts">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }} <span class="alert-close">×</span></div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <h1>Lux<span>Learn</span></h1>
+            <p>Sign in to continue learning</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" required autofocus placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" required placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+        </form>
+        <div class="auth-divider">or</div>
+        <div class="auth-footer">New here? <a href="{% url 'register' %}">Create Account</a></div>
+        <div style="margin-top: 18px; padding: 12px; background: var(--ivory-warm); border-radius: var(--radius-md); text-align: center;">
+            <p style="font-size: 0.7rem; color: var(--charcoal-faint); margin-bottom: 3px;">Demo</p>
+            <p style="font-family: var(--font-mono); font-size: 0.78rem;">student / student123</p>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/luxlearn.js' %}"></script>
+</body>
+</html>

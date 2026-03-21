@@ -1,0 +1,122 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Order {{ order.order_id }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Order #{{ order.order_id }}</h3>
+        <small class="text-muted">{{ order.created_at|date:"F d, Y h:i A" }}</small>
+    </div>
+    <a href="{% url 'dashboard:orders' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- ORDER INFO -->
+    <div class="col-lg-8">
+        <!-- Items -->
+        <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Order Items</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.product_image }}" class="rounded me-2" 
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        {{ item.product_name }}
+                                    </div>
+                                </td>
+                                <td>${{ item.price|floatformat:2 }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td class="fw-bold">${{ item.get_subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                <td class="fw-bold">${{ order.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% if order.discount_amount > 0 %}
+                            <tr class="text-success">
+                                <td colspan="3" class="text-end fw-bold">Discount:</td>
+                                <td class="fw-bold">-${{ order.discount_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
+                                <td class="fw-bold fs-5 text-accent">${{ order.total_price|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Status Update -->
+        <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Update Status</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.status }}
+                    <button type="submit" class="btn btn-accent w-100 mt-3">
+                        <i class="fas fa-save me-1"></i> Update Status
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Customer</h5>
+                <p class="mb-1"><strong>{{ order.user.get_full_name|default:order.user.username }}</strong></p>
+                <p class="mb-1 text-muted">{{ order.user.email }}</p>
+                <p class="mb-0"><i class="fas fa-phone me-1"></i> {{ order.phone }}</p>
+            </div>
+        </div>
+
+        <!-- Shipping -->
+        <div class="card rounded-custom mb-4" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Shipping Address</h5>
+                <p class="mb-1">{{ order.shipping_address }}</p>
+                <p class="mb-1">{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                <p class="mb-0">{{ order.shipping_country }} - {{ order.shipping_zip }}</p>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        {% if payment %}
+        <div class="card rounded-custom" style="box-shadow: var(--shadow);">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Payment</h5>
+                <p class="mb-1"><strong>Method:</strong> {{ payment.get_payment_method_display }}</p>
+                <p class="mb-1"><strong>Transaction:</strong> {{ payment.transaction_id }}</p>
+                <p class="mb-0">
+                    <strong>Status:</strong>
+                    <span class="badge bg-{{ payment.get_status_color }}">{{ payment.get_status_display }}</span>
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
